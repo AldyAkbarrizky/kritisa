@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+Disallow: /dosen/
+Disallow: /api/
+
+Sitemap: https://kritisa.vercel.app/sitemap.xml

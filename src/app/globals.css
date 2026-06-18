@@ -1,26 +1,194 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --background: #f4f5f7;
+    --foreground: #1a1f2e;
+    --surface: #ffffff;
+    --surface-muted: #eef0f5;
+    --primary: #014091;
+    --primary-foreground: #ffffff;
+    --accent: #f78b0f;
+    --accent-strong: #d4780a;
+    --accent-soft: #fef3e4;
+    --border: #dde1e8;
+    --muted: #6b7280;
+    --success: #15803d;
+    --danger: #dc2626;
+    --warning: #f78b0f;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-surface: var(--surface);
+    --color-surface-muted: var(--surface-muted);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-accent: var(--accent);
+    --color-accent-strong: var(--accent-strong);
+    --color-accent-soft: var(--accent-soft);
+    --color-border: var(--border);
+    --color-muted: var(--muted);
+    --color-success: var(--success);
+    --color-danger: var(--danger);
+    --color-warning: var(--warning);
+    --font-sans: var(--font-poppins);
+    --font-mono: var(--font-geist-mono);
+    --font-serif: var(--font-bree-serif);
+    --font-reading: var(--font-bree-serif);
+    --font-editorial: var(--font-bree-serif);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@layer base {
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: clip;
+    }
+
+    body {
+        background:
+            url("/brand/doodle-left.svg") left 0.75rem top 5.25rem / 8.5rem
+                no-repeat,
+            url("/brand/doodle-right.svg") right -1.75rem bottom 2rem / 10.5rem
+                no-repeat,
+            radial-gradient(
+                circle at 10% 20%,
+                rgb(247 139 15 / 0.035),
+                transparent 28rem
+            ),
+            radial-gradient(
+                circle at 88% 80%,
+                rgb(1 64 145 / 0.025),
+                transparent 28rem
+            ),
+            var(--background);
+        background-size: 8.5rem, 10.5rem, auto, auto, auto;
+        color: var(--foreground);
+        font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+    }
+
+    @media (min-width: 768px) {
+        body {
+            background-size: 11rem, 14rem, auto, auto, auto;
+        }
+    }
+
+    main,
+    section,
+    article,
+    header,
+    footer,
+    nav,
+    form,
+    div {
+        min-width: 0;
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-editorial);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+    }
+
+    p,
+    blockquote,
+    a,
+    button,
+    label,
+    span {
+        overflow-wrap: break-word;
+    }
+
+    a,
+    button,
+    input,
+    select,
+    textarea {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── cursor pointer untuk semua elemen interaktif ── */
+    a,
+    button,
+    select,
+    [role="button"],
+    summary {
+        cursor: pointer;
+    }
+
+    /* ── select dropdown ── */
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-position: right 1rem center;
+        background-repeat: no-repeat;
+        background-size: 1rem;
+        padding-right: 3rem !important;
+        transition: border-color 0.15s ease;
+    }
+
+    select:hover {
+        border-color: var(--primary);
+    }
+
+    select:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 4px rgb(1 64 145 / 0.1);
+    }
+
+    /* ── input hover ── */
+    input:not([type="checkbox"]):not([type="radio"]):hover {
+        border-color: var(--border);
+    }
+
+    input:focus,
+    textarea:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 4px rgb(1 64 145 / 0.1);
+    }
+
+    ::selection {
+        background: #014091;
+        color: #ffffff;
+    }
+
+    .reading-body {
+        font-family: var(--font-reading);
+    }
+
+    .reading-body p {
+        margin-bottom: 1.5rem;
+        overflow-wrap: break-word;
+    }
+
+    .reading-body p:first-child::first-letter {
+        float: left;
+        margin: 0.1rem 0.45rem 0 0;
+        color: var(--primary);
+        font-family: var(--font-editorial);
+        font-size: 3.4rem;
+        line-height: 0.82;
+    }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }

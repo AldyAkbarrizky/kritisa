@@ -1,65 +1,113 @@
-import Image from "next/image";
+import { StudentHeader } from "@/components/student-header";
+import { ButtonLink, Card, PageIntro } from "@/components/ui";
+import { StoryCard } from "@/components/story-card";
+import { listStories } from "@/lib/storage";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const stories = (await listStories()).slice(0, 2);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="min-h-screen bg-background">
+      <StudentHeader />
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12">
+        <section className="grid gap-6 md:grid-cols-[1fr_0.95fr] md:items-center">
+          <div className="space-y-6">
+            <PageIntro
+              eyebrow="Kritisa"
+              title="Membaca Cerpen dengan Lebih Kritis"
+              description="Kritisa membantu mahasiswa membaca cerpen, memilih kutipan penting, menulis kritik, berdiskusi dengan AI, dan merefleksikan pemahaman mereka."
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <ButtonLink href="/masuk" fullWidth>
+                Mulai Membaca
+              </ButtonLink>
+              <ButtonLink href="/cerpen" variant="secondary" fullWidth>
+                Lihat Katalog Cerpen
+              </ButtonLink>
+            </div>
+          </div>
+
+          <div className="relative rounded-md border border-foreground bg-surface p-4 shadow-[8px_8px_0_rgb(247_139_15_/_0.12)]">
+            <div className="border-b border-border pb-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-accent-strong">
+                Catatan Baca
+              </p>
+              <p className="mt-2 font-serif text-xl font-bold leading-tight text-foreground sm:text-2xl">
+                “Kritik dimulai dari memilih bukti, bukan menebak jawaban.”
+              </p>
+            </div>
+            <div className="mt-4 grid gap-3">
+              <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold">
+                <span className="rounded-full border border-border bg-surface-muted px-2 py-2">
+                  Baca
+                </span>
+                <span className="rounded-full border border-accent bg-accent-soft px-2 py-2 text-accent-strong">
+                  Kritik
+                </span>
+                <span className="rounded-full border border-success/30 bg-success/10 px-2 py-2 text-success">
+                  Refleksi
+                </span>
+              </div>
+              {[
+                "Pilih cerpen dari katalog media.",
+                "Ambil kutipan dan tandai persoalan.",
+                "Gunakan AI untuk memperluas sudut pandang.",
+                "Tutup dengan refleksi personal-akademik.",
+              ].map((item, index) => (
+                <div
+                  key={item}
+                  className="grid grid-cols-[2.25rem_1fr] items-start gap-3 border-t border-border pt-3"
+                >
+                  <span className="font-serif text-2xl font-bold leading-none text-accent-strong">
+                    0{index + 1}
+                  </span>
+                  <p className="text-sm leading-6 text-foreground">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">
+                Cerpen Pilihan
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                Mulai dari cerita yang sudah dipublikasikan.
+              </p>
+            </div>
+            <ButtonLink
+              href="/cerpen"
+              variant="ghost"
+              className="hidden sm:inline-flex"
+            >
+              Semua Cerpen
+            </ButtonLink>
+          </div>
+          {stories.length > 0 ? (
+            <div className="grid gap-5 md:grid-cols-2">
+              {stories.map((story) => (
+                <StoryCard key={story.id} story={story} />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <p className="text-sm text-muted">
+                Belum ada cerpen yang dipublikasikan.
+              </p>
+            </Card>
+          )}
+        </section>
       </main>
+      <footer className="border-t border-border px-4 py-5 text-center text-sm text-muted">
+        <a href="/dosen/login" className="font-semibold text-primary">
+          Masuk Dashboard Dosen
+        </a>
+      </footer>
     </div>
   );
 }
