@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { loginAction } from "@/app/actions";
 import { FormSubmit } from "@/components/form-submit";
 import { StudentHeader } from "@/components/student-header";
@@ -23,9 +22,7 @@ export default async function LoginPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const [query, user] = await Promise.all([searchParams, getCurrentUser()]);
-  if (user) {
-    redirect(user.role === "dosen" ? "/dosen/dashboard" : "/cerpen");
-  }
+  if (user) redirect(user.role === "dosen" ? "/dosen/dashboard" : "/cerpen");
 
   const next = safeInternalPath(firstSearchValue(query.next), "/cerpen");
   const error = firstSearchValue(query.error);
@@ -65,15 +62,6 @@ export default async function LoginPage({
             <FormSubmit pendingLabel="Memeriksa...">Masuk</FormSubmit>
           </form>
         </Card>
-        <p className="text-center text-sm text-muted">
-          Belum punya akun?{" "}
-          <Link
-            href="/daftar"
-            className="font-semibold text-primary underline underline-offset-4"
-          >
-            Daftar di sini
-          </Link>
-        </p>
       </main>
     </div>
   );

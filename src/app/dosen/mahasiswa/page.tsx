@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { deleteMahasiswaAction } from "@/app/actions";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FormSubmit } from "@/components/form-submit";
+import { ImportMahasiswaButton } from "@/components/import-mahasiswa";
 import { ButtonLink, Card, EmptyState, SuccessBanner } from "@/components/ui";
 import { requireAuth } from "@/lib/auth";
 import { listUsers } from "@/lib/storage";
@@ -25,13 +26,16 @@ export default async function MahasiswaPage({
   return (
     <DashboardShell
       title="Kelola Mahasiswa"
-      description="Tambah, edit, atau hapus akun mahasiswa."
+      description="Tambah, edit, hapus, atau import mahasiswa dari Excel."
     >
-      <div className="flex items-center justify-between">
-        <SuccessBanner
-          message={saved ? "Perubahan data mahasiswa berhasil." : null}
-        />
-        <ButtonLink href="/dosen/mahasiswa/tambah">Tambah Mahasiswa</ButtonLink>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <SuccessBanner
+            message={saved ? "Perubahan data mahasiswa berhasil." : null}
+          />
+          <ImportMahasiswaButton />
+        </div>
+        <ButtonLink href="/dosen/mahasiswa/tambah">+ Tambah</ButtonLink>
       </div>
       {users.length > 0 ? (
         <div className="grid gap-4">
