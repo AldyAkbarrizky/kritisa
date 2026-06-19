@@ -12,14 +12,18 @@ export function makeId(prefix: string) {
   return `${prefix}_${crypto.randomUUID().replaceAll("-", "").slice(0, 18)}`;
 }
 
-export function sanitizeText(value: FormDataEntryValue | string | null | undefined) {
+export function sanitizeText(
+  value: FormDataEntryValue | string | null | undefined,
+) {
   return String(value ?? "")
     .replace(/\u0000/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-export function sanitizeLongText(value: FormDataEntryValue | string | null | undefined) {
+export function sanitizeLongText(
+  value: FormDataEntryValue | string | null | undefined,
+) {
   return String(value ?? "")
     .replace(/\u0000/g, "")
     .replace(/\r\n/g, "\n")
@@ -37,6 +41,8 @@ export function slugify(value: string) {
     .slice(0, 90);
 }
 
+const TZ = "Asia/Jakarta";
+
 export function formatMonth(value: string) {
   if (!/^\d{4}-\d{2}$/.test(value)) {
     return value || "-";
@@ -47,6 +53,7 @@ export function formatMonth(value: string) {
   return new Intl.DateTimeFormat("id-ID", {
     month: "long",
     year: "numeric",
+    timeZone: TZ,
   }).format(date);
 }
 
@@ -59,6 +66,7 @@ export function formatDate(value: string) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: TZ,
   }).format(new Date(value));
 }
 
@@ -73,6 +81,7 @@ export function formatDateTime(value: string) {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: TZ,
   }).format(new Date(value));
 }
 
@@ -102,7 +111,10 @@ export function perspectiveLabel(value: string) {
   return labels[value];
 }
 
-export function safeInternalPath(value: string | null | undefined, fallback = "/cerpen") {
+export function safeInternalPath(
+  value: string | null | undefined,
+  fallback = "/cerpen",
+) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return fallback;
   }
@@ -128,9 +140,7 @@ export function csvLine(values: Array<string | number | undefined | null>) {
 }
 
 export function todayStamp() {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}${month}${day}`;
+  const now = new Date();
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ });
+  return fmt.format(now).replace(/-/g, "");
 }
