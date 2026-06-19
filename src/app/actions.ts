@@ -68,7 +68,7 @@ export async function registerAction(formData: FormData) {
     university,
   });
   if (!result.ok) {
-    redirect(withQuery("/daftar", "error", result.message!!));
+    redirect(withQuery("/daftar", "error", result.message!));
   }
 
   await createSession(result.userId!, "mahasiswa");
@@ -329,14 +329,16 @@ export async function deleteMahasiswaAction(formData: FormData) {
   redirect("/dosen/mahasiswa?saved=1");
 }
 
-
 export async function resetPasswordAction(formData: FormData) {
   await requireAuth("dosen");
   const id = sanitizeText(formData.get("id"));
   const { db, schema } = await import("@/lib/db");
   const { eq } = await import("drizzle-orm");
   const h = await hashPassword("kritisa123");
-  await db.update(schema.users).set({ passwordHash: h, updatedAt: nowIso() }).where(eq(schema.users.id, id));
+  await db
+    .update(schema.users)
+    .set({ passwordHash: h, updatedAt: nowIso() })
+    .where(eq(schema.users.id, id));
   revalidatePath("/dosen/mahasiswa");
   redirect(`/dosen/mahasiswa/${id}/edit?msg=Password+direset+ke+kritisa123`);
 }
