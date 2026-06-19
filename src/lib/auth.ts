@@ -1,4 +1,5 @@
 import { hash, compare } from "bcryptjs";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { db, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
@@ -131,4 +132,18 @@ export async function loginUser(email: string, password: string) {
 
   await createSession(user.id, user.role);
   return { ok: true as const, user: user as User };
+}
+
+export async function seedDefaultUsers() {
+  const existing = await db.select().from(schema.users);
+  if (existing.length > 0) return;
+
+  const now = new Date().toISOString();
+  const dosenHash = await hashPassword("kritisa123");
+  const mhsHash = await hashPassword("kritisa123");
+
+  await db.insert(schema.users).values([
+    { id: "user_dosen_01", email: "dosen@kritisa.com", name: "Dosen Pengampu", passwordHash: dosenHash, role: "dosen", programStudy: "", university: "", createdAt: now, updatedAt: now },
+    { id: "user_mhs_01", email: "mahasiswa@kritisa.com", name: "Mahasiswa Contoh", passwordHash: mhsHash, role: "mahasiswa", programStudy: "Sastra Indonesia", university: "Universitas Indonesia", createdAt: now, updatedAt: now },
+  ]);
 }

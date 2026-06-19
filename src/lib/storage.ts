@@ -1,5 +1,6 @@
 import { eq, and, desc, asc, count } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { seedDefaultUsers } from "@/lib/auth";
 import { nowIso, makeId, slugify } from "@/lib/utils";
 import type {
   MediaSource,
@@ -29,6 +30,7 @@ const {
 // ── Media Sources ──
 
 export async function getMediaSources(): Promise<MediaSource[]> {
+  await seedDefaultUsers();
   return db
     .select()
     .from(mediaSources)
