@@ -9,20 +9,12 @@ import {
   EmptyState,
   PageIntro,
 } from "@/components/ui";
-import { buildAiChatQuota } from "@/lib/ai/limits";
-import { getCurrentStudent } from "@/lib/session";
-import {
-  countStudentAiChatMessages,
-  getLatestAnnotation,
-  getStoryBySlug,
-} from "@/lib/storage";
+import { getCurrentUser } from "@/lib/auth";
+import { getLatestAnnotation, getStoryBySlug } from "@/lib/storage";
 import { firstSearchValue, formatMonth } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Diskusi AI",
-};
+export const metadata: Metadata = { title: "Diskusi AI" };
 
 export default async function AiDiscussionPage({
   params,
@@ -31,24 +23,15 @@ export default async function AiDiscussionPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ slug }, query, student] = await Promise.all([
+  const [{ slug }, query, user] = await Promise.all([
     params,
     searchParams,
-    getCurrentStudent(),
+    getCurrentUser(),
   ]);
   const story = await getStoryBySlug(slug);
+  if (!story) notFound();
 
-  if (!story) {
-    notFound();
-  }
-
-  const annotation = student
-    ? await getLatestAnnotation(student.id, story.id)
-    : null;
-  const aiChatUsage = student
-    ? await countStudentAiChatMessages(student.id, story.id)
-    : 0;
-  const aiChatQuota = buildAiChatQuota(aiChatUsage);
+  const annotation = user ? await getLatestAnnotation(user.id, story.id) : null;
   const quoteText =
     firstSearchValue(query.quote) ?? annotation?.quoteText ?? "";
 
@@ -59,10 +42,9 @@ export default async function AiDiscussionPage({
         <PageIntro
           eyebrow={story.title}
           title="Diskusi dengan Kritisa AI"
-          description="Diskusikan kutipan pilihan Anda bersama Kritisa AI. Jelajahi makna, temukan perspektif baru, dan kembangkan pemikiran kritis melalui dialog."
+          description="Gunakan AI sebagai teman brainstorming. AI akan membantu Anda mengembangkan pertanyaan dan sudut pandang kritis, bukan menggantikan jawaban Anda."
         />
-
-        {!student ? (
+        {!user ? (
           <EmptyState
             title="Identitas belum diisi"
             description="Masuk sebagai mahasiswa sebelum berdiskusi dengan AI."
@@ -95,8 +77,6 @@ export default async function AiDiscussionPage({
               storySlug={story.slug}
               quoteText={quoteText}
               annotationId={annotation?.id}
-              studentName={student.name}
-              initialQuota={aiChatQuota}
             />
             <ButtonLink
               href={`/cerpen/${story.slug}/refleksi`}

@@ -1,11 +1,11 @@
-import { eq, and,  desc, asc, count } from "drizzle-orm";
+import { eq, and, desc, asc, count } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { nowIso, makeId, slugify } from "@/lib/utils";
 import type {
   MediaSource,
+  User,
   StoryWithMedia,
   StoryStatus,
-  Student,
   ReadingSession,
   ReadingStep,
   Annotation,
@@ -17,8 +17,8 @@ import type {
 
 const {
   mediaSources,
+  users,
   stories,
-  students,
   readingSessions,
   annotations,
   reflections,
@@ -115,6 +115,50 @@ async function ensureUniqueSourceSlug(
   }
 }
 
+// ── Users ──
+
+export async function getUserById(id: string): Promise<User | null> {
+  const rows = await db.select().from(users).where(eq(users.id, id));
+  return (rows[0] ?? null) as User | null;
+}
+
+export async function listUsers(role?: string): Promise<User[]> {
+  if (role)
+    return db
+      .select()
+      .from(users)
+      .where(eq(users.role, role))
+      .orderBy(asc(users.name)) as unknown as User[];
+  return db.select().from(users).orderBy(asc(users.name)) as unknown as User[];
+}
+
+export async function updateUser(
+  id: string,
+  input: {
+    name: string;
+    programStudy: string;
+    university: string;
+    role?: string;
+  },
+) {
+  const data: Record<string, string> = {
+    name: input.name,
+    programStudy: input.programStudy,
+    university: input.university,
+    updatedAt: nowIso(),
+  };
+  if (input.role) data.role = input.role;
+  await db
+    .update(users)
+    .set(data as typeof users.$inferInsert)
+    .where(eq(users.id, id));
+  return getUserById(id);
+}
+
+export async function deleteUser(id: string) {
+  await db.delete(users).where(eq(users.id, id));
+}
+
 // ── Stories ──
 
 async function withMediaSource(
@@ -147,27 +191,6 @@ async function withMediaSource(
   };
 }
 
-async function ensureUniqueStorySlug(
-  preferred: string,
-  ignoreId?: string,
-): Promise<string> {
-  const base = slugify(preferred) || "cerpen";
-  let candidate = base;
-  let idx = 2;
-  while (true) {
-    const existing = await db
-      .select({ slug: stories.slug })
-      .from(stories)
-      .where(eq(stories.slug, candidate));
-    if (
-      existing.filter((s) => (ignoreId ? s.slug !== candidate : true))
-        .length === 0
-    )
-      return candidate;
-    candidate = `${base}-${idx++}`;
-  }
-}
-
 export async function listStories(filters?: {
   status?: StoryStatus | "all";
   media?: string;
@@ -175,7 +198,6 @@ export async function listStories(filters?: {
   search?: string;
 }): Promise<StoryWithMedia[]> {
   const conds: ReturnType<typeof eq>[] = [];
-
   if (!filters?.status || filters.status === "published")
     conds.push(eq(stories.status, "published"));
   else if (filters.status !== "all")
@@ -188,11 +210,8 @@ export async function listStories(filters?: {
     .from(stories)
     .innerJoin(mediaSources, eq(stories.mediaSourceId, mediaSources.id))
     .where(and(...conds));
-
-
   const rows = await qb.orderBy(desc(stories.publishedAt), asc(stories.title));
   let result = rows.map((r) => r.stories);
-
   if (filters?.search) {
     const term = filters.search.toLowerCase();
     result = result.filter(
@@ -202,7 +221,6 @@ export async function listStories(filters?: {
         s.summary.toLowerCase().includes(term),
     );
   }
-
   return Promise.all(result.map((r) => withMediaSource(r)));
 }
 
@@ -225,59 +243,13 @@ export async function getStoryById(id: string): Promise<StoryWithMedia | null> {
   return rows[0] ? withMediaSource(rows[0]) : null;
 }
 
-export async function createStory(input: {
-  title: string;
-  slug: string;
-  author: string;
-  mediaSourceId: string;
-  publishedAt: string;
-  publicationMonth: string;
-  sourceUrl: string;
-  coverImageUrl: string;
-  summary: string;
-  content: string;
-  status: StoryStatus;
-}) {
+export async function createStory(input: Record<string, string>) {
   const id = makeId("story");
   const now = nowIso();
-  await db.insert(stories).values({
-    id,
-    title: input.title,
-    slug: await ensureUniqueStorySlug(input.slug),
-    author: input.author,
-    mediaSourceId: input.mediaSourceId,
-    publishedAt: input.publishedAt,
-    publicationMonth: input.publicationMonth,
-    sourceUrl: input.sourceUrl,
-    coverImageUrl: input.coverImageUrl,
-    summary: input.summary,
-    content: input.content,
-    status: input.status,
-    createdAt: now,
-    updatedAt: now,
-  });
-  return getStoryById(id);
-}
-
-export async function updateStory(
-  id: string,
-  input: {
-    title: string;
-    slug: string;
-    author: string;
-    mediaSourceId: string;
-    publishedAt: string;
-    publicationMonth: string;
-    sourceUrl: string;
-    coverImageUrl: string;
-    summary: string;
-    content: string;
-    status: StoryStatus;
-  },
-) {
   await db
-    .update(stories)
-    .set({
+    .insert(stories)
+    .values({
+      id,
       title: input.title,
       slug: input.slug,
       author: input.author,
@@ -289,8 +261,16 @@ export async function updateStory(
       summary: input.summary,
       content: input.content,
       status: input.status,
-      updatedAt: nowIso(),
-    })
+      createdAt: now,
+      updatedAt: now,
+    });
+  return getStoryById(id);
+}
+
+export async function updateStory(id: string, input: Record<string, string>) {
+  await db
+    .update(stories)
+    .set({ ...input, updatedAt: nowIso() })
     .where(eq(stories.id, id));
   return getStoryById(id);
 }
@@ -316,55 +296,10 @@ export async function deleteOrArchiveStory(id: string) {
   return "deleted" as const;
 }
 
-// ── Students ──
-
-export async function upsertStudentIdentity(
-  existingId: string | null,
-  input: { name: string; programStudy: string; university: string },
-): Promise<Student> {
-  const now = nowIso();
-  if (existingId) {
-    const rows = await db
-      .select()
-      .from(students)
-      .where(eq(students.id, existingId));
-    if (rows[0]) {
-      await db
-        .update(students)
-        .set({
-          name: input.name,
-          programStudy: input.programStudy,
-          university: input.university,
-          updatedAt: now,
-        })
-        .where(eq(students.id, existingId));
-      return {
-        id: existingId,
-        ...input,
-        createdAt: rows[0].createdAt,
-        updatedAt: now,
-      };
-    }
-  }
-  const id = makeId("student");
-  await db
-    .insert(students)
-    .values({ id, ...input, createdAt: now, updatedAt: now });
-  return { id, ...input, createdAt: now, updatedAt: now };
-}
-
-export async function getStudentById(
-  id: string | null,
-): Promise<Student | null> {
-  if (!id) return null;
-  const rows = await db.select().from(students).where(eq(students.id, id));
-  return (rows[0] ?? null) as Student | null;
-}
-
 // ── Reading Sessions ──
 
 export async function getOrCreateReadingSession(
-  studentId: string,
+  userId: string,
   storyId: string,
   lastStep: ReadingStep = "reading",
 ): Promise<ReadingSession> {
@@ -374,7 +309,7 @@ export async function getOrCreateReadingSession(
     .from(readingSessions)
     .where(
       and(
-        eq(readingSessions.studentId, studentId),
+        eq(readingSessions.userId, userId),
         eq(readingSessions.storyId, storyId),
       ),
     )
@@ -392,7 +327,7 @@ export async function getOrCreateReadingSession(
     .insert(readingSessions)
     .values({
       id,
-      studentId,
+      userId,
       storyId,
       startedAt: now,
       completedAt: "",
@@ -402,7 +337,7 @@ export async function getOrCreateReadingSession(
     });
   return {
     id,
-    studentId,
+    userId,
     storyId,
     startedAt: now,
     completedAt: "",
@@ -415,14 +350,14 @@ export async function getOrCreateReadingSession(
 // ── Annotations ──
 
 export async function saveAnnotation(input: {
-  studentId: string;
+  userId: string;
   storyId: string;
   quoteText: string;
   critiqueText: string;
   perspective: string;
 }): Promise<Annotation> {
   const session = await getOrCreateReadingSession(
-    input.studentId,
+    input.userId,
     input.storyId,
     "annotation",
   );
@@ -432,7 +367,7 @@ export async function saveAnnotation(input: {
     .insert(annotations)
     .values({
       id,
-      studentId: input.studentId,
+      userId: input.userId,
       storyId: input.storyId,
       readingSessionId: session.id,
       quoteText: input.quoteText,
@@ -451,18 +386,15 @@ export async function saveAnnotation(input: {
 }
 
 export async function getLatestAnnotation(
-  studentId: string | null,
+  userId: string | null,
   storyId: string,
 ): Promise<Annotation | null> {
-  if (!studentId) return null;
+  if (!userId) return null;
   const rows = await db
     .select()
     .from(annotations)
     .where(
-      and(
-        eq(annotations.studentId, studentId),
-        eq(annotations.storyId, storyId),
-      ),
+      and(eq(annotations.userId, userId), eq(annotations.storyId, storyId)),
     )
     .orderBy(desc(annotations.createdAt))
     .limit(1);
@@ -472,13 +404,13 @@ export async function getLatestAnnotation(
 // ── Reflections ──
 
 export async function saveReflection(input: {
-  studentId: string;
+  userId: string;
   storyId: string;
   promptText: string;
   answerText: string;
 }): Promise<Reflection> {
   const session = await getOrCreateReadingSession(
-    input.studentId,
+    input.userId,
     input.storyId,
     "completed",
   );
@@ -488,7 +420,7 @@ export async function saveReflection(input: {
     .insert(reflections)
     .values({
       id,
-      studentId: input.studentId,
+      userId: input.userId,
       storyId: input.storyId,
       readingSessionId: session.id,
       promptText: input.promptText,
@@ -510,18 +442,15 @@ export async function saveReflection(input: {
 }
 
 export async function getLatestReflection(
-  studentId: string | null,
+  userId: string | null,
   storyId: string,
 ): Promise<Reflection | null> {
-  if (!studentId) return null;
+  if (!userId) return null;
   const rows = await db
     .select()
     .from(reflections)
     .where(
-      and(
-        eq(reflections.studentId, studentId),
-        eq(reflections.storyId, storyId),
-      ),
+      and(eq(reflections.userId, userId), eq(reflections.storyId, storyId)),
     )
     .orderBy(desc(reflections.createdAt))
     .limit(1);
@@ -531,22 +460,17 @@ export async function getLatestReflection(
 // ── AI Chat ──
 
 export async function getOrCreateAiConversation(input: {
-  studentId: string;
+  userId: string;
   storyId: string;
   annotationId?: string;
 }): Promise<AiConversation> {
-  await getOrCreateReadingSession(
-    input.studentId,
-    input.storyId,
-    "ai_discussion",
-  );
-  const now = nowIso();
+  await getOrCreateReadingSession(input.userId, input.storyId, "ai_discussion");
   const rows = await db
     .select()
     .from(aiConversations)
     .where(
       and(
-        eq(aiConversations.studentId, input.studentId),
+        eq(aiConversations.userId, input.userId),
         eq(aiConversations.storyId, input.storyId),
       ),
     )
@@ -554,15 +478,13 @@ export async function getOrCreateAiConversation(input: {
     .limit(1);
   if (rows[0]) return rows[0] as AiConversation;
   const id = makeId("conversation");
-  const session = await getOrCreateReadingSession(
-    input.studentId,
-    input.storyId,
-  );
+  const now = nowIso();
+  const session = await getOrCreateReadingSession(input.userId, input.storyId);
   await db
     .insert(aiConversations)
     .values({
       id,
-      studentId: input.studentId,
+      userId: input.userId,
       storyId: input.storyId,
       readingSessionId: session.id,
       annotationId: input.annotationId ?? "",
@@ -609,46 +531,10 @@ export async function getConversationMessages(
     .orderBy(asc(aiMessages.createdAt)) as unknown as AiMessage[];
 }
 
-export async function getLatestAiConversation(
-  studentId: string | null,
-  storyId: string | null,
-): Promise<AiConversation | null> {
-  if (!studentId || !storyId) return null;
-
-  const rows = await db
-    .select()
-    .from(aiConversations)
-    .where(
-      and(
-        eq(aiConversations.studentId, studentId),
-        eq(aiConversations.storyId, storyId),
-      ),
-    )
-    .orderBy(desc(aiConversations.updatedAt), desc(aiConversations.createdAt))
-    .limit(1);
-
-  return (rows[0] ?? null) as AiConversation | null;
-}
-
-export async function getLatestAiConversationMessages(
-  studentId: string | null,
-  storyId: string | null,
-): Promise<AiMessage[]> {
-  const conversation = await getLatestAiConversation(studentId, storyId);
-
-  if (!conversation) {
-    return [];
-  }
-
-  return getConversationMessages(conversation.id);
-}
-
-export async function countStudentAiChatMessages(
-  studentId: string | null,
-  storyId: string | null,
-) {
-  if (!studentId || !storyId) return 0;
-
+export async function countUserAiChatMessages(
+  userId: string,
+  storyId: string,
+): Promise<number> {
   const rows = await db
     .select({ count: count() })
     .from(aiMessages)
@@ -658,13 +544,11 @@ export async function countStudentAiChatMessages(
     )
     .where(
       and(
-        eq(aiConversations.studentId, studentId),
+        eq(aiConversations.userId, userId),
         eq(aiConversations.storyId, storyId),
-        eq(aiMessages.role, "student"),
       ),
     );
-
-  return Number(rows[0]?.count ?? 0);
+  return Number(rows[0].count);
 }
 
 // ── Answers ──
@@ -680,9 +564,9 @@ export async function listAnswerRows(filters?: {
     conds.push(eq(stories.mediaSourceId, filters.mediaSourceId));
 
   const q = db
-    .select({ session: readingSessions, student: students, story: stories })
+    .select({ session: readingSessions, student: users, story: stories })
     .from(readingSessions)
-    .innerJoin(students, eq(readingSessions.studentId, students.id))
+    .innerJoin(users, eq(readingSessions.userId, users.id))
     .innerJoin(stories, eq(readingSessions.storyId, stories.id))
     .where(conds.length > 0 ? and(...conds) : undefined)
     .orderBy(desc(readingSessions.updatedAt));
@@ -716,7 +600,7 @@ export async function listAnswerRows(filters?: {
     if (!ann[0] && !ref[0] && Number(aiCount[0].count) === 0) continue;
     result.push({
       session: row.session as ReadingSession,
-      student: row.student as Student,
+      student: row.student as User,
       story: await withMediaSource(row.story),
       annotation: ann[0] as Annotation | undefined,
       reflection: ref[0] as Reflection | undefined,
@@ -735,7 +619,10 @@ export async function getDashboardSummary() {
       .from(stories)
       .where(eq(stories.status, "published")),
     db.select({ count: count() }).from(stories),
-    db.select({ count: count() }).from(students),
+    db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.role, "mahasiswa")),
     db.select({ count: count() }).from(annotations),
     db.select({ count: count() }).from(reflections),
     listAnswerRows(),

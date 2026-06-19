@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StoryForm } from "@/components/story-form";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { getMediaSources, getStoryById } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ export default async function EditStoryPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const [{ id }, query, mediaSources] = await Promise.all([
     params,
     searchParams,

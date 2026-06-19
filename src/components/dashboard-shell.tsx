@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { adminLogoutAction } from "@/app/actions";
+import { logoutAction } from "@/app/actions";
 import { BrandIcon } from "@/components/brand-icon";
 import { FormSubmit } from "@/components/form-submit";
 
@@ -8,6 +8,7 @@ const navItems = [
   { href: "/dosen/dashboard", label: "Ringkasan" },
   { href: "/dosen/cerpen", label: "Cerpen" },
   { href: "/dosen/media", label: "Media" },
+  { href: "/dosen/mahasiswa", label: "Mahasiswa" },
   { href: "/dosen/jawaban", label: "Jawaban" },
 ];
 
@@ -41,7 +42,7 @@ export function DashboardShell({
                 {item.label}
               </Link>
             ))}
-            <form action={adminLogoutAction}>
+            <form action={logoutAction}>
               <FormSubmit
                 variant="ghost"
                 fullWidth={false}

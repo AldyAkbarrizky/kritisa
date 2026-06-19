@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { createMediaSourceAction } from "@/app/actions";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FormSubmit } from "@/components/form-submit";
@@ -8,7 +9,7 @@ import {
   Field,
   inputClassName,
 } from "@/components/ui";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { firstSearchValue } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,7 @@ export default async function CreateMediaSourcePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const query = await searchParams;
   const error = firstSearchValue(query.error);
 

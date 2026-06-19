@@ -9,7 +9,7 @@ import {
   Field,
   inputClassName,
 } from "@/components/ui";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { getMediaSourceById } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ export default async function EditMediaSourcePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const source = await getMediaSourceById(id);
 

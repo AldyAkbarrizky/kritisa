@@ -15,7 +15,7 @@ import {
   textareaClassName,
 } from "@/components/ui";
 import { quoteFallbackMessage } from "@/lib/quote";
-import { getCurrentStudent } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import { getLatestAnnotation, getStoryBySlug } from "@/lib/storage";
 import { firstSearchValue, formatMonth } from "@/lib/utils";
 
@@ -32,10 +32,10 @@ export default async function CritiquePage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ slug }, query, student] = await Promise.all([
+  const [{ slug }, query, user] = await Promise.all([
     params,
     searchParams,
-    getCurrentStudent(),
+    getCurrentUser(),
   ]);
   const story = await getStoryBySlug(slug);
 
@@ -51,8 +51,8 @@ export default async function CritiquePage({
 
   const error = firstSearchValue(query.error);
   const saved = firstSearchValue(query.saved) === "1";
-  const latestAnnotation = student
-    ? await getLatestAnnotation(student.id, story.id)
+  const latestAnnotation = user
+    ? await getLatestAnnotation(user.id, story.id)
     : null;
 
   return (
@@ -65,7 +65,7 @@ export default async function CritiquePage({
           description="Baca kutipan berikut, lalu tuliskan kritik atau anotasi berdasarkan pemahaman Anda."
         />
 
-        {!student ? (
+        {!user ? (
           <EmptyState
             title="Identitas belum diisi"
             description="Masuk sebagai mahasiswa sebelum menyimpan kritik."

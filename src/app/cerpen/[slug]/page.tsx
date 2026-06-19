@@ -11,7 +11,7 @@ import {
   PageIntro,
   SuccessBanner,
 } from "@/components/ui";
-import { getCurrentStudent } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import { getStoryBySlug } from "@/lib/storage";
 import { firstSearchValue, formatDate, formatMonth } from "@/lib/utils";
 
@@ -37,10 +37,10 @@ export default async function StoryDetailPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ slug }, query, student] = await Promise.all([
+  const [{ slug }, query, user] = await Promise.all([
     params,
     searchParams,
-    getCurrentStudent(),
+    getCurrentUser(),
   ]);
   const story = await getStoryBySlug(slug);
   const error = firstSearchValue(query.error);
@@ -74,7 +74,7 @@ export default async function StoryDetailPage({
           )}
         </div>
 
-        {!student ? (
+        {!user ? (
           <Card className="space-y-4">
             <p className="text-sm leading-6 text-muted">
               Masuk sebagai mahasiswa agar kritik, diskusi, dan refleksi Anda
@@ -142,7 +142,7 @@ export default async function StoryDetailPage({
           </form>
         </Card>
         <SuccessBanner
-          message={student ? `Identitas aktif: ${student.name}` : null}
+          message={user ? `Identitas aktif: ${user.name}` : null}
         />
       </main>
     </div>

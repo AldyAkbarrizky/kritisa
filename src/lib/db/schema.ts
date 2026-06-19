@@ -9,6 +9,18 @@ export const mediaSources = pgTable("media_sources", {
   updatedAt: text("updated_at").notNull(),
 });
 
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").notNull().default("mahasiswa"),
+  programStudy: text("program_study").notNull().default(""),
+  university: text("university").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
 export const stories = pgTable("stories", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
@@ -28,20 +40,11 @@ export const stories = pgTable("stories", {
   updatedAt: text("updated_at").notNull(),
 });
 
-export const students = pgTable("students", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  programStudy: text("program_study").notNull(),
-  university: text("university").notNull(),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
-});
-
 export const readingSessions = pgTable("reading_sessions", {
   id: text("id").primaryKey(),
-  studentId: text("student_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => students.id),
+    .references(() => users.id),
   storyId: text("story_id")
     .notNull()
     .references(() => stories.id),
@@ -54,9 +57,9 @@ export const readingSessions = pgTable("reading_sessions", {
 
 export const annotations = pgTable("annotations", {
   id: text("id").primaryKey(),
-  studentId: text("student_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => students.id),
+    .references(() => users.id),
   storyId: text("story_id")
     .notNull()
     .references(() => stories.id),
@@ -72,9 +75,9 @@ export const annotations = pgTable("annotations", {
 
 export const reflections = pgTable("reflections", {
   id: text("id").primaryKey(),
-  studentId: text("student_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => students.id),
+    .references(() => users.id),
   storyId: text("story_id")
     .notNull()
     .references(() => stories.id),
@@ -89,9 +92,9 @@ export const reflections = pgTable("reflections", {
 
 export const aiConversations = pgTable("ai_conversations", {
   id: text("id").primaryKey(),
-  studentId: text("student_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => students.id),
+    .references(() => users.id),
   storyId: text("story_id")
     .notNull()
     .references(() => stories.id),

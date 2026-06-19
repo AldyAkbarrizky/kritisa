@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { isAdminAuthenticated } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import { listAnswerRows } from "@/lib/storage";
 import {
   csvLine,
@@ -13,15 +13,22 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
-  if (!(await isAdminAuthenticated())) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "dosen") {
     return Response.json(
-      { ok: false, error: { message: "Akses export membutuhkan login dosen." } },
+      {
+        ok: false,
+        error: { message: "Akses export membutuhkan login dosen." },
+      },
       { status: 401 },
     );
   }
 
   const storyId = request.nextUrl.searchParams.get("storyId") ?? undefined;
-  const rows = await listAnswerRows({ storyId });
+  const mediaSourceId =
+    request.nextUrl.searchParams.get("mediaSourceId") ?? undefined;
+  const rows = await listAnswerRows({ storyId, mediaSourceId });
+
   const header = [
     "Nama Mahasiswa",
     "Program Studi",

@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DashboardShell } from "@/components/dashboard-shell";
 import {
@@ -7,7 +8,7 @@ import {
   Field,
   inputClassName,
 } from "@/components/ui";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { getMediaSources, listAnswerRows, listStories } from "@/lib/storage";
 import type { AnswerRow } from "@/lib/types";
 import {
@@ -29,7 +30,7 @@ export default async function AnswersPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const query = await searchParams;
   const storyId = firstSearchValue(query.storyId) ?? "";
   const mediaSourceId = firstSearchValue(query.mediaSourceId) ?? "";

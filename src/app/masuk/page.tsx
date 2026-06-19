@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { saveStudentIdentityAction } from "@/app/actions";
+import Link from "next/link";
+import { loginAction } from "@/app/actions";
 import { FormSubmit } from "@/components/form-submit";
 import { StudentHeader } from "@/components/student-header";
 import {
@@ -9,77 +10,70 @@ import {
   PageIntro,
   inputClassName,
 } from "@/components/ui";
-import { getCurrentStudent } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { firstSearchValue, safeInternalPath } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Masuk" };
 
-export const metadata: Metadata = {
-  title: "Masuk Mahasiswa",
-};
-
-export default async function StudentLoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const query = await searchParams;
-  const student = await getCurrentStudent();
+  const [query, user] = await Promise.all([searchParams, getCurrentUser()]);
+  if (user) {
+    redirect(user.role === "dosen" ? "/dosen/dashboard" : "/cerpen");
+  }
+
   const next = safeInternalPath(firstSearchValue(query.next), "/cerpen");
   const error = firstSearchValue(query.error);
 
   return (
     <div className="min-h-screen bg-background">
       <StudentHeader />
-      <main className="mx-auto w-full max-w-xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto w-full max-w-md space-y-6 px-4 py-12">
         <PageIntro
-          eyebrow="Identitas Mahasiswa"
-          title="Masuk sebagai Mahasiswa"
-          description="Isi identitas singkat agar jawaban dan refleksi Anda dapat tersimpan dengan benar."
+          eyebrow="Masuk"
+          title="Masuk ke Kritisa"
+          description="Gunakan email dan kata sandi Anda."
         />
         <Card>
-          <form action={saveStudentIdentityAction} className="space-y-4">
+          <form action={loginAction} className="space-y-4">
             <input type="hidden" name="next" value={next} />
             <ErrorBanner message={error} />
-            <Field label="Nama" name="name">
+            <Field label="Email" name="email">
               <input
-                id="name"
-                name="name"
+                id="email"
+                name="email"
                 className={inputClassName}
-                defaultValue={student?.name ?? ""}
+                autoComplete="email"
                 required
-                minLength={2}
-                maxLength={100}
-                autoComplete="name"
               />
             </Field>
-            <Field label="Program Studi" name="programStudy">
+            <Field label="Kata Sandi" name="password">
               <input
-                id="programStudy"
-                name="programStudy"
+                id="password"
+                name="password"
+                type="password"
                 className={inputClassName}
-                defaultValue={student?.programStudy ?? ""}
+                autoComplete="current-password"
                 required
-                minLength={2}
-                maxLength={120}
               />
             </Field>
-            <Field label="Universitas" name="university">
-              <input
-                id="university"
-                name="university"
-                className={inputClassName}
-                defaultValue={student?.university ?? ""}
-                required
-                minLength={2}
-                maxLength={150}
-              />
-            </Field>
-            <FormSubmit pendingLabel="Menyimpan identitas...">
-              Lanjut Membaca
-            </FormSubmit>
+            <FormSubmit pendingLabel="Memeriksa...">Masuk</FormSubmit>
           </form>
         </Card>
+        <p className="text-center text-sm text-muted">
+          Belum punya akun?{" "}
+          <Link
+            href="/daftar"
+            className="font-semibold text-primary underline underline-offset-4"
+          >
+            Daftar di sini
+          </Link>
+        </p>
       </main>
     </div>
   );

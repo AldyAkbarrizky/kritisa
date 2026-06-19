@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { deleteStoryAction, setStoryStatusAction } from "@/app/actions";
@@ -11,7 +12,7 @@ import {
   ErrorBanner,
   SuccessBanner,
 } from "@/components/ui";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { listStories } from "@/lib/storage";
 import { firstSearchValue, formatMonth, truncate } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ export default async function LecturerStoriesPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const query = await searchParams;
   const stories = await listStories({ status: "all" });
   const error = firstSearchValue(query.error);

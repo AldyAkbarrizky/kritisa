@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAiReply } from "@/lib/ai/client";
-import { checkAiDiscussionScope } from "@/lib/ai/guardrails";
-import { buildAiChatQuota } from "@/lib/ai/limits";
-import type { Annotation } from "@/lib/types";
-import { getCurrentStudent } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 import {
   addAiMessage,
-  countStudentAiChatMessages,
   getConversationMessages,
   getLatestAnnotation,
   getOrCreateAiConversation,
@@ -17,24 +13,29 @@ import { validateAiMessage } from "@/lib/validation";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const lastRequestByStudent = new Map<string, number>();
-
-function error(message: string, status = 400) {
-  return NextResponse.json({ ok: false, error: { message } }, { status });
-}
+const lastRequestByUser = new Map<string, number>();
 
 export async function POST(request: NextRequest) {
-  const student = await getCurrentStudent();
-  if (!student) {
-    return error("Identitas mahasiswa belum diisi.", 401);
-  }
+  const user = await getCurrentUser();
+  if (!user)
+    return NextResponse.json(
+      { ok: false, error: { message: "Silakan masuk terlebih dahulu." } },
+      { status: 401 },
+    );
 
   const now = Date.now();
-  const previousRequest = lastRequestByStudent.get(student.id) ?? 0;
-  if (now - previousRequest < 3000) {
-    return error("Tunggu sebentar sebelum mengirim pesan berikutnya.", 429);
-  }
-  lastRequestByStudent.set(student.id, now);
+  const prev = lastRequestByUser.get(user.id) ?? 0;
+  if (now - prev < 3000)
+    return NextResponse.json(
+      {
+        ok: false,
+        error: {
+          message: "Tunggu sebentar sebelum mengirim pesan berikutnya.",
+        },
+      },
+      { status: 429 },
+    );
+  lastRequestByUser.set(user.id, now);
 
   let body: {
     storySlug?: string;
@@ -43,104 +44,70 @@ export async function POST(request: NextRequest) {
     conversationId?: string;
     message?: unknown;
   };
-
   try {
     body = (await request.json()) as typeof body;
   } catch {
-    return error("Format permintaan tidak valid.");
+    return NextResponse.json(
+      { ok: false, error: { message: "Format permintaan tidak valid." } },
+      { status: 400 },
+    );
   }
 
-  const parsedMessage = validateAiMessage(body.message);
-  if (!parsedMessage.ok) {
-    return error(parsedMessage.message);
-  }
+  const parsed = validateAiMessage(body.message);
+  if (!parsed.ok)
+    return NextResponse.json(
+      { ok: false, error: { message: parsed.message } },
+      { status: 400 },
+    );
 
   const story = body.storySlug ? await getStoryBySlug(body.storySlug) : null;
-  if (!story) {
-    return error("Cerpen tidak ditemukan.", 404);
-  }
+  if (!story)
+    return NextResponse.json(
+      { ok: false, error: { message: "Cerpen tidak ditemukan." } },
+      { status: 404 },
+    );
 
-  const annotation = await getLatestAnnotation(student.id, story.id);
+  const annotation = await getLatestAnnotation(user.id, story.id);
   const conversation = await getOrCreateAiConversation({
-    studentId: student.id,
+    userId: user.id,
     storyId: story.id,
     annotationId: body.annotationId || annotation?.id,
   });
   const history = await getConversationMessages(conversation.id);
-  const usedMessages = await countStudentAiChatMessages(student.id, story.id);
-  const currentQuota = buildAiChatQuota(usedMessages);
-
-  if (currentQuota.remaining <= 0) {
-    return error(
-      `Kuota diskusi AI untuk cerpen ini sudah habis (${currentQuota.used}/${currentQuota.limit} pesan). Anda bisa melanjutkan ke refleksi dengan hasil diskusi yang sudah ada.`,
-      429,
-    );
-  }
-
-  const guardrail = checkAiDiscussionScope({
-    message: parsedMessage.data,
-    story,
-    quoteText: body.quoteText || annotation?.quoteText,
-    annotation: annotation as Annotation | null,
-    history,
-  });
-
-  if (!guardrail.allowed) {
-    await addAiMessage({
-      conversationId: conversation.id,
-      role: "student",
-      content: parsedMessage.data,
-    });
-    await addAiMessage({
-      conversationId: conversation.id,
-      role: "assistant",
-      content: guardrail.reply,
-    });
-    const updatedQuota = buildAiChatQuota(usedMessages + 1);
-
-    return NextResponse.json({
-      ok: true,
-      data: {
-        reply: guardrail.reply,
-        conversationId: conversation.id,
-        quota: updatedQuota,
-      },
-    });
-  }
-
-  const aiResult = await generateAiReply({
-    story,
-    quoteText: body.quoteText || annotation?.quoteText,
-    annotation: annotation as Annotation | null,
-    history,
-    message: parsedMessage.data,
-  });
-
-  if (!aiResult.ok) {
-    return error(
-      `${aiResult.message} Anda tetap bisa melanjutkan anotasi dan refleksi secara manual.`,
-      503,
-    );
-  }
 
   await addAiMessage({
     conversationId: conversation.id,
     role: "student",
-    content: parsedMessage.data,
+    content: parsed.data,
   });
+
+  const aiResult = await generateAiReply({
+    story,
+    quoteText: body.quoteText || annotation?.quoteText,
+    annotation,
+    history,
+    message: parsed.data,
+  });
+
+  if (!aiResult.ok)
+    return NextResponse.json(
+      {
+        ok: false,
+        error: {
+          message: `${aiResult.message} Kamu tetap bisa melanjutkan anotasi dan refleksi secara manual.`,
+        },
+      },
+      { status: 503 },
+    );
+
   await addAiMessage({
     conversationId: conversation.id,
     role: "assistant",
     content: aiResult.content,
   });
-  const updatedQuota = buildAiChatQuota(usedMessages + 1);
 
   return NextResponse.json({
     ok: true,
-    data: {
-      reply: aiResult.content,
-      conversationId: conversation.id,
-      quota: updatedQuota,
-    },
+    data: { reply: aiResult.content, conversationId: conversation.id },
   });
 }

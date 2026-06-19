@@ -104,7 +104,7 @@ export default async function Home() {
         </section>
       </main>
       <footer className="border-t border-border px-4 py-5 text-center text-sm text-muted">
-        <a href="/dosen/login" className="font-semibold text-primary">
+        <a href="/masuk" className="font-semibold text-primary">
           Masuk Dashboard Dosen
         </a>
       </footer>

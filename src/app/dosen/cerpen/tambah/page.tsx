@@ -1,7 +1,8 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StoryForm } from "@/components/story-form";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { getMediaSources } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
 
@@ -16,7 +17,7 @@ export default async function CreateStoryPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const [mediaSources, query] = await Promise.all([getMediaSources(), searchParams]);
 
   return (

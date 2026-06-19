@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { deleteMediaSourceAction } from "@/app/actions";
 import { DashboardShell } from "@/components/dashboard-shell";
@@ -9,7 +10,7 @@ import {
   EmptyState,
   SuccessBanner,
 } from "@/components/ui";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { getMediaSources } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
 
@@ -24,7 +25,7 @@ export default async function MediaSourcesPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const query = await searchParams;
   const mediaSources = await getMediaSources();
   const saved = firstSearchValue(query.saved) === "1";

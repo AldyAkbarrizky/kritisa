@@ -7,12 +7,25 @@ export type ReadingStep =
   | "reflection"
   | "completed";
 export type AiRole = "student" | "assistant" | "system";
+export type UserRole = "dosen" | "mahasiswa";
 
 export type MediaSource = {
   id: string;
   name: string;
   slug: string;
   websiteUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  passwordHash: string;
+  role: UserRole;
+  programStudy: string;
+  university: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -34,18 +47,9 @@ export type Story = {
   updatedAt: string;
 };
 
-export type Student = {
-  id: string;
-  name: string;
-  programStudy: string;
-  university: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type ReadingSession = {
   id: string;
-  studentId: string;
+  userId: string;
   storyId: string;
   startedAt: string;
   completedAt: string;
@@ -56,7 +60,7 @@ export type ReadingSession = {
 
 export type Annotation = {
   id: string;
-  studentId: string;
+  userId: string;
   storyId: string;
   readingSessionId: string;
   quoteText: string;
@@ -68,7 +72,7 @@ export type Annotation = {
 
 export type Reflection = {
   id: string;
-  studentId: string;
+  userId: string;
   storyId: string;
   readingSessionId: string;
   promptText: string;
@@ -79,7 +83,7 @@ export type Reflection = {
 
 export type AiConversation = {
   id: string;
-  studentId: string;
+  userId: string;
   storyId: string;
   readingSessionId: string;
   annotationId: string;
@@ -90,29 +94,16 @@ export type AiConversation = {
 export type AiMessage = {
   id: string;
   conversationId: string;
-  role: AiRole;
+  role: string;
   content: string;
   createdAt: string;
 };
 
-export type Database = {
-  mediaSources: MediaSource[];
-  stories: Story[];
-  students: Student[];
-  readingSessions: ReadingSession[];
-  annotations: Annotation[];
-  reflections: Reflection[];
-  aiConversations: AiConversation[];
-  aiMessages: AiMessage[];
-};
-
-export type StoryWithMedia = Story & {
-  mediaSource: MediaSource;
-};
+export type StoryWithMedia = Story & { mediaSource: MediaSource };
 
 export type AnswerRow = {
   session: ReadingSession;
-  student: Student;
+  student: User;
   story: StoryWithMedia;
   annotation?: Annotation;
   reflection?: Reflection;

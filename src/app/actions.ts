@@ -2,9 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  loginUser,
+  registerUser,
+  clearSession,
+  createSession,
+} from "@/lib/auth";
 import { quoteFallbackMessage, selectRandomQuote } from "@/lib/quote";
 import {
   createStory,
+  createMediaSource,
+  updateMediaSource,
+  deleteMediaSource,
+  getMediaSourceById,
   deleteOrArchiveStory,
   getMediaSources,
   getOrCreateReadingSession,
@@ -14,75 +24,103 @@ import {
   saveReflection,
   setStoryStatus,
   updateStory,
-  upsertStudentIdentity,
+  updateUser,
+  deleteUser,
+  getUserById,
 } from "@/lib/storage";
-import {
-  clearAdminSession,
-  createAdminSession,
-  getCurrentStudent,
-  getCurrentStudentId,
-  requireAdminSession,
-  setStudentSession,
-  verifyAdminCredentials,
-} from "@/lib/session";
 import { sanitizeText, safeInternalPath } from "@/lib/utils";
 import {
   validateAnnotation,
   validateReflection,
   validateStory,
-  validateStudentIdentity,
 } from "@/lib/validation";
+import { getCurrentUser, requireAuth } from "@/lib/auth";
 
 function withQuery(path: string, key: string, value: string) {
-  const separator = path.includes("?") ? "&" : "?";
-  return `${path}${separator}${key}=${encodeURIComponent(value)}`;
+  return `${path}${path.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(value)}`;
 }
 
-function storyFormPath(formData: FormData, fallback: string) {
-  return sanitizeText(formData.get("returnPath")) || fallback;
-}
+// ── Auth Actions ──
 
-export async function saveStudentIdentityAction(formData: FormData) {
-  const next = safeInternalPath(sanitizeText(formData.get("next")), "/cerpen");
-  const parsed = validateStudentIdentity(formData);
+export async function registerAction(formData: FormData) {
+  const email = sanitizeText(formData.get("email"));
+  const name = sanitizeText(formData.get("name"));
+  const password = String(formData.get("password") ?? "");
+  const programStudy = sanitizeText(formData.get("programStudy"));
+  const university = sanitizeText(formData.get("university"));
 
-  if (!parsed.ok) {
+  if (!email || !name || !password || password.length < 6) {
     redirect(
       withQuery(
-        `/masuk?next=${encodeURIComponent(next)}`,
+        "/daftar",
         "error",
-        parsed.message,
+        "Semua field wajib diisi. Kata sandi minimal 6 karakter.",
       ),
     );
   }
 
-  const student = await upsertStudentIdentity(
-    await getCurrentStudentId(),
-    parsed.data,
-  );
-  await setStudentSession(student.id);
-  revalidatePath("/cerpen");
+  const result = await registerUser({
+    email,
+    name,
+    password,
+    programStudy,
+    university,
+  });
+  if (!result.ok) {
+    redirect(withQuery("/daftar", "error", result.message!!));
+  }
+
+  await createSession(result.userId!, "mahasiswa");
+  redirect("/cerpen");
+}
+
+export async function loginAction(formData: FormData) {
+  const email = sanitizeText(formData.get("email"));
+  const password = String(formData.get("password") ?? "");
+  const next = safeInternalPath(sanitizeText(formData.get("next")), "/cerpen");
+
+  // Check if logging in as dosen
+  const result = await loginUser(email, password);
+  if (!result.ok) {
+    redirect(
+      withQuery(
+        `/masuk?next=${encodeURIComponent(next)}`,
+        "error",
+        result.message,
+      ),
+    );
+  }
+
+  const user = result.user!;
+  if (user.role === "dosen") {
+    redirect("/dosen/dashboard");
+  }
+
   redirect(next);
 }
 
+export async function logoutAction() {
+  await clearSession();
+  redirect("/masuk");
+}
+
+// ── Quote & Annotation ──
+
 export async function selectQuoteAction(formData: FormData) {
   const slug = sanitizeText(formData.get("slug"));
-  const student = await getCurrentStudent();
+  const user = await getCurrentUser();
 
-  if (!student) {
+  if (!user) {
     redirect(`/masuk?next=${encodeURIComponent(`/cerpen/${slug}`)}`);
   }
 
   const story = await getStoryBySlug(slug);
-  if (!story) {
-    redirect("/cerpen");
-  }
+  if (!story) redirect("/cerpen");
 
-  await getOrCreateReadingSession(student.id, story.id, "annotation");
+  await getOrCreateReadingSession(user.id, story.id, "annotation");
   const quote = selectRandomQuote(story.content);
-  if (!quote) {
+  if (!quote)
     redirect(withQuery(`/cerpen/${story.slug}`, "error", quoteFallbackMessage));
-  }
 
   redirect(`/cerpen/${story.slug}/kritik?quote=${encodeURIComponent(quote)}`);
 }
@@ -91,24 +129,19 @@ export async function saveAnnotationAction(formData: FormData) {
   const slug = sanitizeText(formData.get("slug"));
   const quoteText = sanitizeText(formData.get("quoteText"));
   const basePath = `/cerpen/${slug}/kritik?quote=${encodeURIComponent(quoteText)}`;
-  const student = await getCurrentStudent();
+  const user = await getCurrentUser();
 
-  if (!student) {
+  if (!user)
     redirect(`/masuk?next=${encodeURIComponent(`/cerpen/${slug}/kritik`)}`);
-  }
 
   const story = await getStoryBySlug(slug);
-  if (!story) {
-    redirect("/cerpen");
-  }
+  if (!story) redirect("/cerpen");
 
   const parsed = validateAnnotation(formData);
-  if (!parsed.ok) {
-    redirect(withQuery(basePath, "error", parsed.message));
-  }
+  if (!parsed.ok) redirect(withQuery(basePath, "error", parsed.message));
 
   await saveAnnotation({
-    studentId: student.id,
+    userId: user.id,
     storyId: story.id,
     quoteText: parsed.data.quoteText,
     critiqueText: parsed.data.critiqueText,
@@ -122,126 +155,68 @@ export async function saveAnnotationAction(formData: FormData) {
 export async function saveReflectionAction(formData: FormData) {
   const slug = sanitizeText(formData.get("slug"));
   const basePath = `/cerpen/${slug}/refleksi`;
-  const student = await getCurrentStudent();
-
-  if (!student) {
-    redirect(`/masuk?next=${encodeURIComponent(basePath)}`);
-  }
+  const user = await getCurrentUser();
+  if (!user) redirect(`/masuk?next=${encodeURIComponent(basePath)}`);
 
   const story = await getStoryBySlug(slug);
-  if (!story) {
-    redirect("/cerpen");
-  }
+  if (!story) redirect("/cerpen");
 
   const parsed = validateReflection(formData);
-  if (!parsed.ok) {
-    redirect(withQuery(basePath, "error", parsed.message));
-  }
+  if (!parsed.ok) redirect(withQuery(basePath, "error", parsed.message));
 
   await saveReflection({
-    studentId: student.id,
+    userId: user.id,
     storyId: story.id,
     promptText: parsed.data.promptText,
     answerText: parsed.data.answerText,
   });
 
-  revalidatePath("/selesai");
   redirect(`/selesai?story=${encodeURIComponent(story.slug)}`);
 }
 
-export async function adminLoginAction(formData: FormData) {
-  const username = sanitizeText(formData.get("username"));
-  const password = String(formData.get("password") ?? "");
-  const next = safeInternalPath(
-    sanitizeText(formData.get("next")),
-    "/dosen/dashboard",
-  );
-  const result = verifyAdminCredentials(username, password);
-
-  if (!result.ok) {
-    redirect(
-      withQuery(
-        `/dosen/login?next=${encodeURIComponent(next)}`,
-        "error",
-        result.message,
-      ),
-    );
-  }
-
-  try {
-    await createAdminSession();
-  } catch (error) {
-    redirect(
-      withQuery(
-        `/dosen/login?next=${encodeURIComponent(next)}`,
-        "error",
-        error instanceof Error ? error.message : "Sesi dosen gagal dibuat.",
-      ),
-    );
-  }
-
-  redirect(next);
-}
-
-export async function adminLogoutAction() {
-  await clearAdminSession();
-  redirect("/dosen/login");
-}
+// ── Story Management ──
 
 async function assertStoryMedia(mediaSourceId: string, returnPath: string) {
-  const mediaSources = await getMediaSources();
-  if (!mediaSources.some((source) => source.id === mediaSourceId)) {
+  const sources = await getMediaSources();
+  if (!sources.some((s) => s.id === mediaSourceId))
     redirect(withQuery(returnPath, "error", "Media sumber tidak ditemukan."));
-  }
+}
+
+function storyFormPath(formData: FormData, fallback: string) {
+  return sanitizeText(formData.get("returnPath")) || fallback;
 }
 
 export async function createStoryAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAuth("dosen");
   const returnPath = storyFormPath(formData, "/dosen/cerpen/tambah");
   const parsed = validateStory(formData);
-
-  if (!parsed.ok) {
-    redirect(withQuery(returnPath, "error", parsed.message));
-  }
-
+  if (!parsed.ok) redirect(withQuery(returnPath, "error", parsed.message));
   await assertStoryMedia(parsed.data.mediaSourceId, returnPath);
   const story = await createStory({
     ...parsed.data,
     publishedAt:
       parsed.data.publishedAt || `${parsed.data.publicationMonth}-01`,
   });
-
-
-  if (!story) {
-    redirect(withQuery(returnPath, "error", "Gagal membuat cerpen."));
-  }
-
+  if (!story) redirect(withQuery(returnPath, "error", "Gagal membuat cerpen."));
   revalidatePath("/cerpen");
   revalidatePath("/dosen/cerpen");
   redirect(`/dosen/cerpen/${story.id}/edit?saved=1`);
 }
 
 export async function updateStoryAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAuth("dosen");
   const id = sanitizeText(formData.get("id"));
   const returnPath = storyFormPath(formData, `/dosen/cerpen/${id}/edit`);
   const parsed = validateStory(formData);
-
-  if (!parsed.ok) {
-    redirect(withQuery(returnPath, "error", parsed.message));
-  }
-
+  if (!parsed.ok) redirect(withQuery(returnPath, "error", parsed.message));
   await assertStoryMedia(parsed.data.mediaSourceId, returnPath);
   const story = await updateStory(id, {
     ...parsed.data,
     publishedAt:
       parsed.data.publishedAt || `${parsed.data.publicationMonth}-01`,
   });
-
-  if (!story) {
+  if (!story)
     redirect(withQuery("/dosen/cerpen", "error", "Cerpen tidak ditemukan."));
-  }
-
   revalidatePath("/cerpen");
   revalidatePath(`/cerpen/${story.slug}`);
   revalidatePath("/dosen/cerpen");
@@ -249,81 +224,106 @@ export async function updateStoryAction(formData: FormData) {
 }
 
 export async function setStoryStatusAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAuth("dosen");
   const id = sanitizeText(formData.get("id"));
   const status =
     sanitizeText(formData.get("status")) === "published"
       ? "published"
       : "draft";
   const story = await setStoryStatus(id, status);
-
   if (story) {
     revalidatePath("/cerpen");
     revalidatePath(`/cerpen/${story.slug}`);
   }
-
   revalidatePath("/dosen/cerpen");
   redirect("/dosen/cerpen?saved=1");
 }
 
 export async function deleteStoryAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAuth("dosen");
   const id = sanitizeText(formData.get("id"));
   const story = await getStoryById(id);
   await deleteOrArchiveStory(id);
-
-  if (story) {
-    revalidatePath(`/cerpen/${story.slug}`);
-  }
-
+  if (story) revalidatePath(`/cerpen/${story.slug}`);
   revalidatePath("/cerpen");
   revalidatePath("/dosen/cerpen");
   redirect("/dosen/cerpen?saved=1");
 }
 
-// ── Media Source Actions ──
-
-import {
-  createMediaSource,
-  updateMediaSource,
-  deleteMediaSource,
-} from "@/lib/storage";
+// ── Media Source Management ──
 
 export async function createMediaSourceAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAuth("dosen");
   const name = sanitizeText(formData.get("name"));
   const slug = sanitizeText(formData.get("slug"));
   const websiteUrl = sanitizeText(formData.get("websiteUrl"));
-
-  if (!name || name.length < 2) {
+  if (!name || name.length < 2)
     redirect("/dosen/media/tambah?error=Nama+media+wajib+diisi.");
-  }
-
   await createMediaSource({ name, slug, websiteUrl });
   revalidatePath("/dosen/media");
   redirect("/dosen/media?saved=1");
 }
 
 export async function updateMediaSourceAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAuth("dosen");
   const id = sanitizeText(formData.get("id"));
   const name = sanitizeText(formData.get("name"));
   const slug = sanitizeText(formData.get("slug"));
   const websiteUrl = sanitizeText(formData.get("websiteUrl"));
-
-  if (!name || name.length < 2) {
+  if (!name || name.length < 2)
     redirect(`/dosen/media/${id}/edit?error=Nama+media+wajib+diisi.`);
-  }
-
   await updateMediaSource(id, { name, slug, websiteUrl });
   revalidatePath("/dosen/media");
   redirect("/dosen/media?saved=1");
 }
 
 export async function deleteMediaSourceAction(formData: FormData) {
-  await requireAdminSession();
-  const id = sanitizeText(formData.get("id"));
-  await deleteMediaSource(id);
+  await requireAuth("dosen");
+  await deleteMediaSource(sanitizeText(formData.get("id")));
   revalidatePath("/dosen/media");
   redirect("/dosen/media?saved=1");
+}
+
+// ── User Management (Dosen only) ──
+
+export async function createMahasiswaAction(formData: FormData) {
+  await requireAuth("dosen");
+  const email = sanitizeText(formData.get("email"));
+  const name = sanitizeText(formData.get("name"));
+  const password = String(formData.get("password") ?? "");
+  const programStudy = sanitizeText(formData.get("programStudy"));
+  const university = sanitizeText(formData.get("university"));
+  if (!email || !name || !password)
+    redirect("/dosen/mahasiswa/tambah?error=Semua+field+wajib+diisi.");
+  const result = await registerUser({
+    email,
+    name,
+    password,
+    programStudy,
+    university,
+  });
+  if (!result.ok)
+    redirect(
+      `/dosen/mahasiswa/tambah?error=${encodeURIComponent(result.message!)}`,
+    );
+  revalidatePath("/dosen/mahasiswa");
+  redirect("/dosen/mahasiswa?saved=1");
+}
+
+export async function updateMahasiswaAction(formData: FormData) {
+  await requireAuth("dosen");
+  const id = sanitizeText(formData.get("id"));
+  const name = sanitizeText(formData.get("name"));
+  const programStudy = sanitizeText(formData.get("programStudy"));
+  const university = sanitizeText(formData.get("university"));
+  await updateUser(id, { name, programStudy, university });
+  revalidatePath("/dosen/mahasiswa");
+  redirect("/dosen/mahasiswa?saved=1");
+}
+
+export async function deleteMahasiswaAction(formData: FormData) {
+  await requireAuth("dosen");
+  await deleteUser(sanitizeText(formData.get("id")));
+  revalidatePath("/dosen/mahasiswa");
+  redirect("/dosen/mahasiswa?saved=1");
 }

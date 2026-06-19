@@ -1,7 +1,8 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { Badge, ButtonLink, Card, EmptyState } from "@/components/ui";
-import { requireAdminSession } from "@/lib/session";
+import { requireAuth } from "@/lib/auth";
 import { getDashboardSummary } from "@/lib/storage";
 import { formatDateTime, truncate } from "@/lib/utils";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LecturerDashboardPage() {
-  await requireAdminSession();
+  if (!(await requireAuth("dosen"))) notFound();
   const summary = await getDashboardSummary();
   const stats = [
     { label: "Cerpen Published", value: summary.publishedStories },
