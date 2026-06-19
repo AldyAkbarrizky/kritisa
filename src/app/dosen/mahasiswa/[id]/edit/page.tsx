@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { updateMahasiswaAction, resetPasswordAction } from "@/app/actions";
+import { updateMahasiswaAction } from "@/app/actions";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FormSubmit } from "@/components/form-submit";
-import { Card, ErrorBanner, Field, inputClassName } from "@/components/ui";
 import { ResetPasswordButton } from "@/components/reset-password";
+import { Card, ErrorBanner, Field, inputClassName } from "@/components/ui";
 import { requireAuth } from "@/lib/auth";
 import { getUserById } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
@@ -73,9 +73,9 @@ export default async function EditMahasiswaPage({
               defaultValue={user.university}
             />
           </Field>
-          <div className="flex gap-3">
-            <FormSubmit>Simpan Perubahan</FormSubmit>
+          <div className="flex flex-col gap-3">
             <ResetPasswordButton userId={user.id} />
+            <FormSubmit>Simpan Perubahan</FormSubmit>
           </div>
         </form>
       </Card>
