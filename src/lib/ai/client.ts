@@ -2,12 +2,11 @@ import {
   buildAiMessages,
   buildReflectionDraftPrompt,
   buildReflectionPrompt,
+  buildReflectionSummaryPrompt,
 } from "@/lib/ai/prompts";
 import type { AiMessage, Annotation, StoryWithMedia } from "@/lib/types";
 
-type AiResult =
-  | { ok: true; content: string }
-  | { ok: false; message: string };
+type AiResult = { ok: true; content: string } | { ok: false; message: string };
 
 type OpenAiMessage = {
   role: "system" | "user" | "assistant";
@@ -31,12 +30,16 @@ function getAiConfig() {
   const model = process.env.AI_MODEL?.trim() || "llama-3.1-8b-instant";
   const baseUrl =
     process.env.AI_BASE_URL?.trim() ||
-    (provider === "groq" ? "https://api.groq.com/openai/v1" : "https://api.openai.com/v1");
+    (provider === "groq"
+      ? "https://api.groq.com/openai/v1"
+      : "https://api.openai.com/v1");
 
   return { provider, apiKey, model, baseUrl };
 }
 
-async function requestChatCompletion(messages: OpenAiMessage[]): Promise<AiResult> {
+async function requestChatCompletion(
+  messages: OpenAiMessage[],
+): Promise<AiResult> {
   const config = getAiConfig();
 
   if (!config.apiKey) {
@@ -48,19 +51,22 @@ async function requestChatCompletion(messages: OpenAiMessage[]): Promise<AiResul
   }
 
   try {
-    const response = await fetch(`${config.baseUrl.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${config.baseUrl.replace(/\/$/, "")}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: config.model,
+          messages,
+          temperature: 0.6,
+          max_tokens: 900,
+        }),
       },
-      body: JSON.stringify({
-        model: config.model,
-        messages,
-        temperature: 0.6,
-        max_tokens: 900,
-      }),
-    });
+    );
 
     if (!response.ok) {
       return {
@@ -78,7 +84,10 @@ async function requestChatCompletion(messages: OpenAiMessage[]): Promise<AiResul
     const content = payload.choices?.[0]?.message?.content?.trim();
 
     if (!content) {
-      return { ok: false, message: "AI tidak mengirim tanggapan yang dapat dibaca." };
+      return {
+        ok: false,
+        message: "AI tidak mengirim tanggapan yang dapat dibaca.",
+      };
     }
 
     return { ok: true, content: normalizeAiContent(content) };
@@ -120,7 +129,7 @@ export async function generateReflectionPrompt(input: {
     content: result.content
       .replace(/^["']|["']$/g, "")
       .replace(/^Pertanyaan:\s*/i, "")
-    .trim(),
+      .trim(),
   };
 }
 
@@ -150,5 +159,26 @@ export async function generateReflectionDraft(input: {
       .replace(/^#{1,6}\s*Draf Refleksi\s*:?\s*/i, "")
       .replace(/^Draf Refleksi\s*:?\s*/i, "")
       .trim(),
+  };
+}
+
+export async function generateReflectionSummary(input: {
+  story: StoryWithMedia;
+  reflectionAnswer: string;
+}) {
+  const result = await requestChatCompletion([
+    {
+      role: "system",
+      content:
+        "Anda membuat ringkasan pemahaman singkat dalam Bahasa Indonesia berdasarkan jawaban refleksi mahasiswa. Gunakan format: 'Berdasarkan jawaban Anda, tampak bahwa Anda memahami cerpen ini sebagai cerita yang mengangkat persoalan [tema]. Anda menyoroti aspek [konflik/isu/nilai] serta menghubungkannya dengan [refleksi/makna]. Pemahaman ini menunjukkan kemampuan Anda dalam menafsirkan makna cerita dan merefleksikannya dalam konteks yang lebih luas.' Sesuaikan isi kurung siku dengan jawaban mahasiswa. Jangan lebih dari 3 kalimat.",
+    },
+    { role: "user", content: buildReflectionSummaryPrompt(input) },
+  ]);
+
+  if (!result.ok) return result;
+
+  return {
+    ok: true as const,
+    content: result.content.replace(/^["']|["']$/g, "").trim(),
   };
 }

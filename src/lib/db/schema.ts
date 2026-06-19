@@ -17,6 +17,8 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("mahasiswa"),
   programStudy: text("program_study").notNull().default(""),
   university: text("university").notNull().default(""),
+  chatQuotaUsed: text("chat_quota_used").notNull().default("0"),
+  chatQuotaResetAt: text("chat_quota_reset_at").notNull().default(""),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

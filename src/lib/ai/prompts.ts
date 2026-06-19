@@ -105,3 +105,15 @@ Anotasi mahasiswa: ${input.annotationText || "-"}
 Input mahasiswa dalam diskusi:
 ${discussion || "-"}`;
 }
+
+export function buildReflectionSummaryPrompt(input: {
+  story: StoryWithMedia;
+  reflectionAnswer: string;
+}) {
+  return `Buat ringkasan pemahaman singkat (2-3 kalimat) berdasarkan jawaban refleksi mahasiswa berikut. Format: "Berdasarkan jawaban Anda, tampak bahwa Anda memahami cerpen ini sebagai cerita yang mengangkat persoalan [tema]. Anda menyoroti aspek [konflik/isu/nilai] serta menghubungkannya dengan [refleksi/makna]. Pemahaman ini menunjukkan kemampuan Anda dalam menafsirkan makna cerita dan merefleksikannya dalam konteks yang lebih luas."
+
+Judul cerpen: ${input.story.title}
+Penulis: ${input.story.author || "-"}
+Ringkasan cerpen: ${input.story.summary}
+Jawaban refleksi mahasiswa: ${truncate(input.reflectionAnswer, 1500)}`;
+}

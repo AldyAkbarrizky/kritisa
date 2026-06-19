@@ -30,6 +30,7 @@ async function main() {
       id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
       password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'mahasiswa',
       program_study TEXT NOT NULL DEFAULT '', university TEXT NOT NULL DEFAULT '',
+      chat_quota_used TEXT NOT NULL DEFAULT '0', chat_quota_reset_at TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL
     );
     CREATE TABLE stories (
@@ -102,4 +103,7 @@ async function main() {
   await pool.end();
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

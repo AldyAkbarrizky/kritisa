@@ -1,4 +1,4 @@
-import { eq, and, desc, asc, count } from "drizzle-orm";
+import { eq, and, desc, asc, count, gte } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { seedDefaultUsers } from "@/lib/auth";
 import { nowIso, makeId, slugify } from "@/lib/utils";
@@ -57,16 +57,14 @@ export async function createMediaSource(input: {
   const uniqueSlug = await ensureUniqueSourceSlug(
     input.slug || slugify(input.name),
   );
-  await db
-    .insert(mediaSources)
-    .values({
-      id,
-      name: input.name,
-      slug: uniqueSlug,
-      websiteUrl: input.websiteUrl,
-      createdAt: now,
-      updatedAt: now,
-    });
+  await db.insert(mediaSources).values({
+    id,
+    name: input.name,
+    slug: uniqueSlug,
+    websiteUrl: input.websiteUrl,
+    createdAt: now,
+    updatedAt: now,
+  });
   return {
     id,
     name: input.name,
@@ -248,24 +246,22 @@ export async function getStoryById(id: string): Promise<StoryWithMedia | null> {
 export async function createStory(input: Record<string, string>) {
   const id = makeId("story");
   const now = nowIso();
-  await db
-    .insert(stories)
-    .values({
-      id,
-      title: input.title,
-      slug: input.slug,
-      author: input.author,
-      mediaSourceId: input.mediaSourceId,
-      publishedAt: input.publishedAt,
-      publicationMonth: input.publicationMonth,
-      sourceUrl: input.sourceUrl,
-      coverImageUrl: input.coverImageUrl,
-      summary: input.summary,
-      content: input.content,
-      status: input.status,
-      createdAt: now,
-      updatedAt: now,
-    });
+  await db.insert(stories).values({
+    id,
+    title: input.title,
+    slug: input.slug,
+    author: input.author,
+    mediaSourceId: input.mediaSourceId,
+    publishedAt: input.publishedAt,
+    publicationMonth: input.publicationMonth,
+    sourceUrl: input.sourceUrl,
+    coverImageUrl: input.coverImageUrl,
+    summary: input.summary,
+    content: input.content,
+    status: input.status,
+    createdAt: now,
+    updatedAt: now,
+  });
   return getStoryById(id);
 }
 
@@ -325,18 +321,16 @@ export async function getOrCreateReadingSession(
     return rows[0] as ReadingSession;
   }
   const id = makeId("session");
-  await db
-    .insert(readingSessions)
-    .values({
-      id,
-      userId,
-      storyId,
-      startedAt: now,
-      completedAt: "",
-      lastStep,
-      createdAt: now,
-      updatedAt: now,
-    });
+  await db.insert(readingSessions).values({
+    id,
+    userId,
+    storyId,
+    startedAt: now,
+    completedAt: "",
+    lastStep,
+    createdAt: now,
+    updatedAt: now,
+  });
   return {
     id,
     userId,
@@ -365,19 +359,17 @@ export async function saveAnnotation(input: {
   );
   const id = makeId("annotation");
   const now = nowIso();
-  await db
-    .insert(annotations)
-    .values({
-      id,
-      userId: input.userId,
-      storyId: input.storyId,
-      readingSessionId: session.id,
-      quoteText: input.quoteText,
-      critiqueText: input.critiqueText,
-      perspective: input.perspective,
-      createdAt: now,
-      updatedAt: now,
-    });
+  await db.insert(annotations).values({
+    id,
+    userId: input.userId,
+    storyId: input.storyId,
+    readingSessionId: session.id,
+    quoteText: input.quoteText,
+    critiqueText: input.critiqueText,
+    perspective: input.perspective,
+    createdAt: now,
+    updatedAt: now,
+  });
   return {
     id,
     ...input,
@@ -418,18 +410,16 @@ export async function saveReflection(input: {
   );
   const id = makeId("reflection");
   const now = nowIso();
-  await db
-    .insert(reflections)
-    .values({
-      id,
-      userId: input.userId,
-      storyId: input.storyId,
-      readingSessionId: session.id,
-      promptText: input.promptText,
-      answerText: input.answerText,
-      createdAt: now,
-      updatedAt: now,
-    });
+  await db.insert(reflections).values({
+    id,
+    userId: input.userId,
+    storyId: input.storyId,
+    readingSessionId: session.id,
+    promptText: input.promptText,
+    answerText: input.answerText,
+    createdAt: now,
+    updatedAt: now,
+  });
   await db
     .update(readingSessions)
     .set({ lastStep: "completed", completedAt: now, updatedAt: now })
@@ -482,17 +472,15 @@ export async function getOrCreateAiConversation(input: {
   const id = makeId("conversation");
   const now = nowIso();
   const session = await getOrCreateReadingSession(input.userId, input.storyId);
-  await db
-    .insert(aiConversations)
-    .values({
-      id,
-      userId: input.userId,
-      storyId: input.storyId,
-      readingSessionId: session.id,
-      annotationId: input.annotationId ?? "",
-      createdAt: now,
-      updatedAt: now,
-    });
+  await db.insert(aiConversations).values({
+    id,
+    userId: input.userId,
+    storyId: input.storyId,
+    readingSessionId: session.id,
+    annotationId: input.annotationId ?? "",
+    createdAt: now,
+    updatedAt: now,
+  });
   const created = await db
     .select()
     .from(aiConversations)
@@ -507,15 +495,13 @@ export async function addAiMessage(input: {
 }) {
   const id = makeId("msg");
   const now = nowIso();
-  await db
-    .insert(aiMessages)
-    .values({
-      id,
-      conversationId: input.conversationId,
-      role: input.role,
-      content: input.content,
-      createdAt: now,
-    });
+  await db.insert(aiMessages).values({
+    id,
+    conversationId: input.conversationId,
+    role: input.role,
+    content: input.content,
+    createdAt: now,
+  });
   await db
     .update(aiConversations)
     .set({ updatedAt: now })
@@ -551,6 +537,76 @@ export async function countUserAiChatMessages(
       ),
     );
   return Number(rows[0].count);
+}
+
+export async function countUserChatMessagesToday(
+  userId: string,
+): Promise<number> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayIso = today.toISOString();
+  const user = await getUserById(userId);
+  const since =
+    user?.chatQuotaResetAt && user.chatQuotaResetAt > todayIso
+      ? user.chatQuotaResetAt
+      : todayIso;
+  const rows = await db
+    .select({ count: count() })
+    .from(aiMessages)
+    .innerJoin(
+      aiConversations,
+      eq(aiMessages.conversationId, aiConversations.id),
+    )
+    .where(
+      and(
+        eq(aiConversations.userId, userId),
+        eq(aiMessages.role, "student"),
+        gte(aiMessages.createdAt, since),
+      ),
+    );
+  return Number(rows[0].count);
+}
+
+export async function resetStudentChatQuota(userId: string) {
+  const now = nowIso();
+  await db
+    .update(users)
+    .set({ chatQuotaUsed: "0", chatQuotaResetAt: now, updatedAt: now })
+    .where(eq(users.id, userId));
+}
+
+export async function getStudentMessagesForConversation(
+  conversationId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ content: aiMessages.content })
+    .from(aiMessages)
+    .where(
+      and(
+        eq(aiMessages.conversationId, conversationId),
+        eq(aiMessages.role, "student"),
+      ),
+    )
+    .orderBy(asc(aiMessages.createdAt));
+  return rows.map((r) => r.content);
+}
+
+export async function getLatestAiConversation(
+  userId: string,
+  storyId: string,
+): Promise<AiConversation | null> {
+  const rows = await db
+    .select()
+    .from(aiConversations)
+    .where(
+      and(
+        eq(aiConversations.userId, userId),
+        eq(aiConversations.storyId, storyId),
+      ),
+    )
+    .orderBy(desc(aiConversations.createdAt))
+    .limit(1);
+  return (rows[0] ?? null) as AiConversation | null;
 }
 
 // ── Answers ──

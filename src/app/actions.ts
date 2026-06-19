@@ -28,6 +28,7 @@ import {
   updateUser,
   deleteUser,
   getUserById,
+  resetStudentChatQuota,
 } from "@/lib/storage";
 import { sanitizeText, safeInternalPath, nowIso } from "@/lib/utils";
 import {
@@ -341,4 +342,12 @@ export async function resetPasswordAction(formData: FormData) {
     .where(eq(schema.users.id, id));
   revalidatePath("/dosen/mahasiswa");
   redirect(`/dosen/mahasiswa/${id}/edit?msg=Password+direset+ke+kritisa123`);
+}
+
+export async function resetQuotaAction(formData: FormData) {
+  await requireAuth("dosen");
+  const id = sanitizeText(formData.get("id"));
+  await resetStudentChatQuota(id);
+  revalidatePath("/dosen/mahasiswa");
+  redirect("/dosen/mahasiswa?msg=Kuota+chat+berhasil+direset");
 }

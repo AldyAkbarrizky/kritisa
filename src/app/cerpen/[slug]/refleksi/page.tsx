@@ -13,13 +13,18 @@ import {
   SuccessBanner,
   textareaClassName,
 } from "@/components/ui";
-import { generateReflectionPrompt } from "@/lib/ai/client";
+import {
+  generateReflectionPrompt,
+  generateReflectionDraft,
+} from "@/lib/ai/client";
 import { selectReflectionPrompt } from "@/lib/reflection";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getLatestAnnotation,
   getLatestReflection,
   getStoryBySlug,
+  getLatestAiConversation,
+  getStudentMessagesForConversation,
 } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
 
@@ -58,6 +63,26 @@ export default async function ReflectionPage({
     prompt = selectReflectionPrompt(
       `${story.slug}${annotation?.quoteText ?? ""}`,
     );
+  }
+
+  // Generate reflection draft from AI discussion
+  let reflectionDraft = "";
+  if (user && annotation && !reflection?.answerText) {
+    const conversation = await getLatestAiConversation(user.id, story.id);
+    if (conversation) {
+      const studentMessages = await getStudentMessagesForConversation(
+        conversation.id,
+      );
+      if (studentMessages.length > 0) {
+        const draftResult = await generateReflectionDraft({
+          story,
+          quoteText: annotation.quoteText,
+          annotationText: annotation.critiqueText,
+          studentMessages,
+        });
+        if (draftResult.ok) reflectionDraft = draftResult.content;
+      }
+    }
   }
 
   const error = firstSearchValue(query.error);
@@ -105,7 +130,7 @@ export default async function ReflectionPage({
                 name="answerText"
                 className={textareaClassName}
                 placeholder="Tuliskan refleksi Anda di sini..."
-                defaultValue={reflection?.answerText ?? ""}
+                defaultValue={reflection?.answerText || reflectionDraft}
                 required
                 minLength={20}
                 maxLength={3000}

@@ -7,12 +7,14 @@ import {
   getLatestAnnotation,
   getOrCreateAiConversation,
   getStoryBySlug,
+  countUserChatMessagesToday,
 } from "@/lib/storage";
 import { validateAiMessage } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const MAX_CHAT_PER_DAY = 8;
 const lastRequestByUser = new Map<string, number>();
 
 export async function POST(request: NextRequest) {
@@ -36,6 +38,19 @@ export async function POST(request: NextRequest) {
       { status: 429 },
     );
   lastRequestByUser.set(user.id, now);
+
+  const used = await countUserChatMessagesToday(user.id);
+  if (used >= MAX_CHAT_PER_DAY) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: {
+          message: `Kuota diskusi AI hari ini sudah habis (${MAX_CHAT_PER_DAY}/${MAX_CHAT_PER_DAY}). Kuota akan direset pukul 00:00.`,
+        },
+      },
+      { status: 429 },
+    );
+  }
 
   let body: {
     storySlug?: string;

@@ -42,7 +42,7 @@ export default async function AiDiscussionPage({
         <PageIntro
           eyebrow={story.title}
           title="Diskusi dengan Kritisa AI"
-          description="Gunakan AI sebagai teman brainstorming. AI akan membantu Anda mengembangkan pertanyaan dan sudut pandang kritis, bukan menggantikan jawaban Anda."
+          description="Diskusikan kutipan pilihan Anda bersama Kritisa AI. Jelajahi makna, temukan perspektif baru, dan kembangkan pemikiran kritis melalui dialog."
         />
         {!user ? (
           <EmptyState

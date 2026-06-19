@@ -14,10 +14,13 @@ import {
 type ChatMessage = { role: "student" | "assistant"; content: string };
 
 const starterPrompts = [
-  "Apa yang bisa saya kritik dari kutipan ini?",
-  "Bantu saya melihat unsur strukturalnya.",
-  "Apa kemungkinan makna sosial dari kutipan ini?",
-  "Pertanyaan kritis apa yang bisa saya ajukan?",
+  "Apa makna kutipan ini?",
+  "Bantu saya melihat unsur sastranya.",
+  "Apa yang bisa saya kritisi dari kutipan ini?",
+  "Apa makna sosial dari kutipan ini?",
+  "Adakah perspektif lain yang bisa digunakan?",
+  "Hubungkan kutipan ini dengan kehidupan nyata.",
+  "Bimbing saya berpikir lebih kritis.",
 ];
 
 export function ChatInterface({
@@ -116,7 +119,7 @@ export function ChatInterface({
                   </Badge>
                 </div>
                 {m.role === "assistant" ? (
-                  <div className="prose prose-sm max-w-none prose-headings:text-foreground prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2 prose-p:leading-6 prose-li:leading-6 prose-strong:text-foreground prose-code:text-accent-strong prose-code:bg-surface-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-surface-muted prose-pre:rounded-lg prose-blockquote:border-l-4 prose-blockquote:border-accent prose-blockquote:bg-accent-soft prose-blockquote:px-3 prose-blockquote:py-1 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-hr:border-border">
+                  <div className="kritisa-chat-markdown">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {m.content}
                     </ReactMarkdown>

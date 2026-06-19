@@ -26,6 +26,8 @@ export type User = {
   role: UserRole;
   programStudy: string;
   university: string;
+  chatQuotaUsed: string;
+  chatQuotaResetAt: string;
   createdAt: string;
   updatedAt: string;
 };
