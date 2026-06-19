@@ -1,6 +1,6 @@
 {
   "name": "kritisa",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.9",
