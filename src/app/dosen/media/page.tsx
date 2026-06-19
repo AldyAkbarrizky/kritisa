@@ -25,11 +25,13 @@ export default async function MediaSourcesPage({
       title="Kelola Media Sumber"
       description="Tambah, edit, atau hapus media sumber cerpen."
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <SuccessBanner
           message={saved ? "Perubahan media berhasil diproses." : null}
         />
-        <ButtonLink href="/dosen/media/tambah">Tambah Media</ButtonLink>
+        <ButtonLink href="/dosen/media/tambah" className="sm:ml-auto">
+          Tambah Media
+        </ButtonLink>
       </div>
       {sources.length > 0 ? (
         <MediaTable sources={sources} />

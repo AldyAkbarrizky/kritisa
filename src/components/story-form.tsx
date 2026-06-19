@@ -1,7 +1,14 @@
 import type { MediaSource, StoryWithMedia } from "@/lib/types";
 import { createStoryAction, updateStoryAction } from "@/app/actions";
 import { FormSubmit } from "@/components/form-submit";
-import { Card, ErrorBanner, Field, SuccessBanner, inputClassName, textareaClassName } from "@/components/ui";
+import {
+  Card,
+  ErrorBanner,
+  Field,
+  SuccessBanner,
+  inputClassName,
+  textareaClassName,
+} from "@/components/ui";
 
 export function StoryForm({
   mediaSources,
@@ -15,7 +22,9 @@ export function StoryForm({
   saved?: boolean;
 }) {
   const action = story ? updateStoryAction : createStoryAction;
-  const returnPath = story ? `/dosen/cerpen/${story.id}/edit` : "/dosen/cerpen/tambah";
+  const returnPath = story
+    ? `/dosen/cerpen/${story.id}/edit`
+    : "/dosen/cerpen/tambah";
 
   return (
     <Card>
@@ -23,7 +32,9 @@ export function StoryForm({
         <input type="hidden" name="id" value={story?.id ?? ""} />
         <input type="hidden" name="returnPath" value={returnPath} />
         <ErrorBanner message={error} />
-        <SuccessBanner message={saved ? "Perubahan cerpen berhasil disimpan." : null} />
+        <SuccessBanner
+          message={saved ? "Perubahan cerpen berhasil disimpan." : null}
+        />
 
         <Field label="Judul" name="title">
           <input
@@ -37,7 +48,11 @@ export function StoryForm({
           />
         </Field>
 
-        <Field label="Slug" name="slug" helper="Kosongkan saat membuat cerpen agar dibuat dari judul.">
+        <Field
+          label="Slug"
+          name="slug"
+          helper="Kosongkan saat membuat cerpen agar dibuat dari judul."
+        >
           <input
             id="slug"
             name="slug"
@@ -76,7 +91,11 @@ export function StoryForm({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Tanggal Terbit" name="publishedAt" helper="Opsional.">
+          <Field
+            label="Tanggal Terbit"
+            labelSuffix="(Opsional)"
+            name="publishedAt"
+          >
             <input
               id="publishedAt"
               name="publishedAt"
@@ -98,7 +117,11 @@ export function StoryForm({
           </Field>
         </div>
 
-        <Field label="URL Sumber" name="sourceUrl" helper="Simpan atribusi sumber bila tersedia.">
+        <Field
+          label="URL Sumber"
+          name="sourceUrl"
+          helper="Simpan atribusi sumber bila tersedia."
+        >
           <input
             id="sourceUrl"
             name="sourceUrl"
@@ -109,7 +132,11 @@ export function StoryForm({
           />
         </Field>
 
-        <Field label="URL Gambar Sampul" name="coverImageUrl" helper="Opsional. Jika kosong, UI memakai blok warna.">
+        <Field
+          label="URL Gambar Sampul"
+          name="coverImageUrl"
+          helper="Opsional. Jika kosong, UI memakai blok warna."
+        >
           <input
             id="coverImageUrl"
             name="coverImageUrl"
@@ -132,7 +159,11 @@ export function StoryForm({
           />
         </Field>
 
-        <Field label="Isi Cerpen" name="content" helper="Gunakan teks polos. Pisahkan paragraf dengan baris kosong.">
+        <Field
+          label="Isi Cerpen"
+          name="content"
+          helper="Gunakan teks polos. Pisahkan paragraf dengan baris kosong."
+        >
           <textarea
             id="content"
             name="content"
@@ -156,7 +187,9 @@ export function StoryForm({
         </Field>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <FormSubmit fullWidth={false}>{story ? "Simpan Perubahan" : "Tambah Cerpen"}</FormSubmit>
+          <FormSubmit fullWidth={false}>
+            {story ? "Simpan Perubahan" : "Tambah Cerpen"}
+          </FormSubmit>
         </div>
       </form>
     </Card>

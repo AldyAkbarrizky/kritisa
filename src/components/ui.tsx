@@ -112,12 +112,14 @@ export function Badge({
 
 export function Field({
   label,
+  labelSuffix,
   name,
   helper,
   error,
   children,
 }: {
   label: string;
+  labelSuffix?: string;
   name: string;
   helper?: string;
   error?: string;
@@ -127,6 +129,9 @@ export function Field({
     <label className="block" htmlFor={name}>
       <span className="block text-sm font-semibold text-foreground">
         {label}
+        {labelSuffix ? (
+          <span className="ml-1 font-normal text-muted">{labelSuffix}</span>
+        ) : null}
       </span>
       {helper ? (
         <span className="mt-1 block text-xs leading-5 text-muted">
