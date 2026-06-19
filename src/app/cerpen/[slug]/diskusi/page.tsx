@@ -50,7 +50,7 @@ export default async function AiDiscussionPage({
     : 0;
   const aiChatQuota = buildAiChatQuota(aiChatUsage);
   const quoteText =
-    firstSearchValue(query.quote) ?? "";
+    firstSearchValue(query.quote) ?? annotation?.quoteText ?? "";
 
   return (
     <div className="min-h-screen bg-background">
