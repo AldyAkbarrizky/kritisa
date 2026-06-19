@@ -123,6 +123,10 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    data: { reply: aiResult.content, conversationId: conversation.id },
+    data: {
+      reply: aiResult.content,
+      conversationId: conversation.id,
+      quotaUsed: used + 1,
+    },
   });
 }

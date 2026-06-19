@@ -10,7 +10,11 @@ import {
   PageIntro,
 } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
-import { getLatestAnnotation, getStoryBySlug } from "@/lib/storage";
+import {
+  getLatestAnnotation,
+  getStoryBySlug,
+  countUserChatMessagesToday,
+} from "@/lib/storage";
 import { firstSearchValue, formatMonth } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +38,7 @@ export default async function AiDiscussionPage({
   const annotation = user ? await getLatestAnnotation(user.id, story.id) : null;
   const quoteText =
     firstSearchValue(query.quote) ?? annotation?.quoteText ?? "";
+  const quotaUsed = user ? await countUserChatMessagesToday(user.id) : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,6 +82,8 @@ export default async function AiDiscussionPage({
               storySlug={story.slug}
               quoteText={quoteText}
               annotationId={annotation?.id}
+              quotaUsed={quotaUsed}
+              quotaMax={8}
             />
             <ButtonLink
               href={`/cerpen/${story.slug}/refleksi`}
