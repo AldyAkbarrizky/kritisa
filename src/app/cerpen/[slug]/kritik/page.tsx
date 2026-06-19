@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { saveAnnotationAction } from "@/app/actions";
 import { FormSubmit } from "@/components/form-submit";
 import { StudentHeader } from "@/components/student-header";
@@ -14,7 +14,7 @@ import {
   SuccessBanner,
   textareaClassName,
 } from "@/components/ui";
-import { quoteFallbackMessage, selectStableQuote } from "@/lib/quote";
+import { quoteFallbackMessage } from "@/lib/quote";
 import { getCurrentStudent } from "@/lib/session";
 import { getLatestAnnotation, getStoryBySlug } from "@/lib/storage";
 import { firstSearchValue, formatMonth } from "@/lib/utils";
@@ -43,8 +43,12 @@ export default async function CritiquePage({
     notFound();
   }
 
-  const quote =
-    firstSearchValue(query.quote) ?? selectStableQuote(story.content);
+  const quote = firstSearchValue(query.quote);
+
+  if (!quote) {
+    redirect(`/cerpen/${story.slug}`);
+  }
+
   const error = firstSearchValue(query.error);
   const saved = firstSearchValue(query.saved) === "1";
   const latestAnnotation = student
@@ -125,7 +129,7 @@ export default async function CritiquePage({
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <ButtonLink
-                href={`/cerpen/${story.slug}/diskusi`}
+                href={`/cerpen/${story.slug}/diskusi?quote=${encodeURIComponent(quote)}`}
                 variant="secondary"
                 fullWidth
               >
