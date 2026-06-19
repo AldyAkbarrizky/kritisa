@@ -27,6 +27,7 @@ import {
   getStudentMessagesForConversation,
 } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
+import { MarkdownContent } from "@/components/markdown-content";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Refleksi Membaca" };
@@ -114,7 +115,7 @@ export default async function ReflectionPage({
           <h2 className="text-lg font-bold text-foreground">
             Pertanyaan Refleksi
           </h2>
-          <p className="text-base leading-7 text-foreground">{prompt}</p>
+          <MarkdownContent content={prompt} />
         </Card>
         <Card>
           <form action={saveReflectionAction} className="space-y-4">
