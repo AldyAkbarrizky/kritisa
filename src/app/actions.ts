@@ -7,6 +7,7 @@ import {
   registerUser,
   clearSession,
   createSession,
+  hashPassword,
 } from "@/lib/auth";
 import { quoteFallbackMessage, selectRandomQuote } from "@/lib/quote";
 import {
@@ -28,7 +29,7 @@ import {
   deleteUser,
   getUserById,
 } from "@/lib/storage";
-import { sanitizeText, safeInternalPath } from "@/lib/utils";
+import { sanitizeText, safeInternalPath, nowIso } from "@/lib/utils";
 import {
   validateAnnotation,
   validateReflection,
@@ -326,4 +327,16 @@ export async function deleteMahasiswaAction(formData: FormData) {
   await deleteUser(sanitizeText(formData.get("id")));
   revalidatePath("/dosen/mahasiswa");
   redirect("/dosen/mahasiswa?saved=1");
+}
+
+
+export async function resetPasswordAction(formData: FormData) {
+  await requireAuth("dosen");
+  const id = sanitizeText(formData.get("id"));
+  const { db, schema } = await import("@/lib/db");
+  const { eq } = await import("drizzle-orm");
+  const h = await hashPassword("kritisa123");
+  await db.update(schema.users).set({ passwordHash: h, updatedAt: nowIso() }).where(eq(schema.users.id, id));
+  revalidatePath("/dosen/mahasiswa");
+  redirect(`/dosen/mahasiswa/${id}/edit?msg=Password+direset+ke+kritisa123`);
 }
