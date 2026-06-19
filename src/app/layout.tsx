@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Poppins, Bree_Serif } from "next/font/google";
+import { DoodleBackground } from "@/components/doodle-background";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -44,7 +45,10 @@ export default function RootLayout({
       lang="id"
       className={`${poppins.variable} ${breeSerif.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <DoodleBackground />
+        {children}
+      </body>
     </html>
   );
 }

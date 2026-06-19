@@ -53,10 +53,6 @@
 
     body {
         background:
-            url("/brand/doodle-left.svg") left 0.75rem top 5.25rem / 8.5rem
-                no-repeat,
-            url("/brand/doodle-right.svg") right -1.75rem bottom 2rem / 10.5rem
-                no-repeat,
             radial-gradient(
                 circle at 10% 20%,
                 rgb(247 139 15 / 0.035),
@@ -68,15 +64,8 @@
                 transparent 28rem
             ),
             var(--background);
-        background-size: 8.5rem, 10.5rem, auto, auto, auto;
         color: var(--foreground);
         font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
-    }
-
-    @media (min-width: 768px) {
-        body {
-            background-size: 11rem, 14rem, auto, auto, auto;
-        }
     }
 
     main,
