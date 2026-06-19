@@ -77,7 +77,7 @@ export default async function StoryDetailPage({
         {!student ? (
           <Card className="space-y-4">
             <p className="text-sm leading-6 text-muted">
-              Masuk sebagai mahasiswa agar kritik, diskusi, dan refleksimu
+              Masuk sebagai mahasiswa agar kritik, diskusi, dan refleksi Anda
               tersimpan.
             </p>
             <ButtonLink
@@ -131,7 +131,7 @@ export default async function StoryDetailPage({
             Langkah Berikutnya
           </h2>
           <p className="text-sm leading-6 text-muted">
-            Ambil satu kutipan dari cerpen ini, tulis kritikmu, lalu lanjutkan
+            Ambil satu kutipan dari cerpen ini, tulis kritik Anda, lalu lanjutkan
             diskusi atau refleksi.
           </p>
           <form action={selectQuoteAction}>

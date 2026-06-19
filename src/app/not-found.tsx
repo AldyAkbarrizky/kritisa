@@ -6,7 +6,7 @@ export default function NotFound() {
       <div className="rounded-lg border border-border bg-surface p-5 shadow-sm">
         <h1 className="text-2xl font-bold text-foreground">Halaman tidak ditemukan</h1>
         <p className="mt-2 text-sm leading-6 text-muted">
-          Konten yang kamu cari tidak tersedia atau belum dipublikasikan.
+          Konten yang Anda cari tidak tersedia atau belum dipublikasikan.
         </p>
         <div className="mt-4">
           <ButtonLink href="/cerpen">Kembali ke Katalog</ButtonLink>

@@ -180,6 +180,103 @@
         font-size: 3.4rem;
         line-height: 0.82;
     }
+
+    .kritisa-chat-markdown {
+        overflow-wrap: anywhere;
+        font-size: 0.95rem;
+        line-height: 1.75;
+    }
+
+    .kritisa-chat-markdown > * + * {
+        margin-top: 0.8rem;
+    }
+
+    .kritisa-chat-markdown p {
+        line-height: 1.75;
+    }
+
+    .kritisa-chat-markdown h1,
+    .kritisa-chat-markdown h2,
+    .kritisa-chat-markdown h3,
+    .kritisa-chat-markdown h4 {
+        margin-top: 1rem;
+        color: var(--foreground);
+        font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+        font-size: 0.98rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 1.45;
+    }
+
+    .kritisa-chat-markdown ul,
+    .kritisa-chat-markdown ol {
+        padding-left: 1.25rem;
+    }
+
+    .kritisa-chat-markdown ul {
+        list-style: disc;
+    }
+
+    .kritisa-chat-markdown ol {
+        list-style: decimal;
+    }
+
+    .kritisa-chat-markdown li {
+        margin-top: 0.35rem;
+        padding-left: 0.1rem;
+        line-height: 1.75;
+    }
+
+    .kritisa-chat-markdown li > p {
+        display: inline;
+    }
+
+    .kritisa-chat-markdown strong {
+        color: var(--foreground);
+        font-weight: 700;
+    }
+
+    .kritisa-chat-markdown blockquote {
+        border-left: 4px solid var(--accent);
+        border-radius: 0 0.75rem 0.75rem 0;
+        background: var(--accent-soft);
+        padding: 0.65rem 0.85rem;
+        color: var(--foreground);
+        font-style: normal;
+    }
+
+    .kritisa-chat-markdown code {
+        border-radius: 0.35rem;
+        background: var(--surface-muted);
+        padding: 0.1rem 0.3rem;
+        color: var(--accent-strong);
+        font-size: 0.88em;
+    }
+
+    .kritisa-chat-markdown pre {
+        overflow-x: auto;
+        border-radius: 0.75rem;
+        background: var(--surface-muted);
+        padding: 0.85rem;
+    }
+
+    .kritisa-chat-markdown pre code {
+        background: transparent;
+        padding: 0;
+    }
+
+    .kritisa-chat-markdown hr {
+        margin: 1rem 0;
+        border: 0;
+        border-top: 1px solid var(--border);
+    }
+
+    .kritisa-chat-markdown a {
+        color: var(--primary);
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

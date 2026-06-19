@@ -35,7 +35,7 @@ export default async function StudentLoginPage({
         <PageIntro
           eyebrow="Identitas Mahasiswa"
           title="Masuk sebagai Mahasiswa"
-          description="Isi identitas singkat agar jawaban dan refleksimu dapat tersimpan dengan benar."
+          description="Isi identitas singkat agar jawaban dan refleksi Anda dapat tersimpan dengan benar."
         />
         <Card>
           <form action={saveStudentIdentityAction} className="space-y-4">

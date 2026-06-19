@@ -609,6 +609,64 @@ export async function getConversationMessages(
     .orderBy(asc(aiMessages.createdAt)) as unknown as AiMessage[];
 }
 
+export async function getLatestAiConversation(
+  studentId: string | null,
+  storyId: string | null,
+): Promise<AiConversation | null> {
+  if (!studentId || !storyId) return null;
+
+  const rows = await db
+    .select()
+    .from(aiConversations)
+    .where(
+      and(
+        eq(aiConversations.studentId, studentId),
+        eq(aiConversations.storyId, storyId),
+      ),
+    )
+    .orderBy(desc(aiConversations.updatedAt), desc(aiConversations.createdAt))
+    .limit(1);
+
+  return (rows[0] ?? null) as AiConversation | null;
+}
+
+export async function getLatestAiConversationMessages(
+  studentId: string | null,
+  storyId: string | null,
+): Promise<AiMessage[]> {
+  const conversation = await getLatestAiConversation(studentId, storyId);
+
+  if (!conversation) {
+    return [];
+  }
+
+  return getConversationMessages(conversation.id);
+}
+
+export async function countStudentAiChatMessages(
+  studentId: string | null,
+  storyId: string | null,
+) {
+  if (!studentId || !storyId) return 0;
+
+  const rows = await db
+    .select({ count: count() })
+    .from(aiMessages)
+    .innerJoin(
+      aiConversations,
+      eq(aiMessages.conversationId, aiConversations.id),
+    )
+    .where(
+      and(
+        eq(aiConversations.studentId, studentId),
+        eq(aiConversations.storyId, storyId),
+        eq(aiMessages.role, "student"),
+      ),
+    );
+
+  return Number(rows[0]?.count ?? 0);
+}
+
 // ── Answers ──
 
 export async function listAnswerRows(filters?: {

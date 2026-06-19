@@ -9,8 +9,13 @@ import {
   EmptyState,
   PageIntro,
 } from "@/components/ui";
+import { buildAiChatQuota } from "@/lib/ai/limits";
 import { getCurrentStudent } from "@/lib/session";
-import { getLatestAnnotation, getStoryBySlug } from "@/lib/storage";
+import {
+  countStudentAiChatMessages,
+  getLatestAnnotation,
+  getStoryBySlug,
+} from "@/lib/storage";
 import { firstSearchValue, formatMonth } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +45,10 @@ export default async function AiDiscussionPage({
   const annotation = student
     ? await getLatestAnnotation(student.id, story.id)
     : null;
+  const aiChatUsage = student
+    ? await countStudentAiChatMessages(student.id, story.id)
+    : 0;
+  const aiChatQuota = buildAiChatQuota(aiChatUsage);
   const quoteText =
     firstSearchValue(query.quote) ?? annotation?.quoteText ?? "";
 
@@ -50,7 +59,7 @@ export default async function AiDiscussionPage({
         <PageIntro
           eyebrow={story.title}
           title="Diskusi dengan Kritisa AI"
-          description="Gunakan AI sebagai teman brainstorming. AI akan membantumu mengembangkan pertanyaan dan sudut pandang kritis, bukan menggantikan jawabanmu."
+          description="Diskusikan kutipan pilihan Anda bersama Kritisa AI. Jelajahi makna, temukan perspektif baru, dan kembangkan pemikiran kritis melalui dialog."
         />
 
         {!student ? (
@@ -86,6 +95,8 @@ export default async function AiDiscussionPage({
               storySlug={story.slug}
               quoteText={quoteText}
               annotationId={annotation?.id}
+              studentName={student.name}
+              initialQuota={aiChatQuota}
             />
             <ButtonLink
               href={`/cerpen/${story.slug}/refleksi`}

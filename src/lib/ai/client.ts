@@ -1,4 +1,8 @@
-import { buildAiMessages, buildReflectionPrompt } from "@/lib/ai/prompts";
+import {
+  buildAiMessages,
+  buildReflectionDraftPrompt,
+  buildReflectionPrompt,
+} from "@/lib/ai/prompts";
 import type { AiMessage, Annotation, StoryWithMedia } from "@/lib/types";
 
 type AiResult =
@@ -9,6 +13,17 @@ type OpenAiMessage = {
   role: "system" | "user" | "assistant";
   content: string;
 };
+
+function normalizeAiContent(value: string) {
+  return value
+    .replace(/^```(?:markdown|md)?\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p>/gi, "\n\n")
+    .replace(/<\/?p>/gi, "")
+    .replace(/\n{4,}/g, "\n\n\n")
+    .trim();
+}
 
 function getAiConfig() {
   const provider = process.env.AI_PROVIDER?.trim() || "groq";
@@ -43,7 +58,7 @@ async function requestChatCompletion(messages: OpenAiMessage[]): Promise<AiResul
         model: config.model,
         messages,
         temperature: 0.6,
-        max_tokens: 500,
+        max_tokens: 900,
       }),
     });
 
@@ -66,7 +81,7 @@ async function requestChatCompletion(messages: OpenAiMessage[]): Promise<AiResul
       return { ok: false, message: "AI tidak mengirim tanggapan yang dapat dibaca." };
     }
 
-    return { ok: true, content };
+    return { ok: true, content: normalizeAiContent(content) };
   } catch {
     return { ok: false, message: "AI sedang tidak tersedia." };
   }
@@ -91,7 +106,7 @@ export async function generateReflectionPrompt(input: {
     {
       role: "system",
       content:
-        "Kamu membuat pertanyaan refleksi singkat dalam Bahasa Indonesia. Berikan satu pertanyaan saja.",
+        "Anda membuat pertanyaan refleksi singkat dalam Bahasa Indonesia. Berikan satu pertanyaan saja.",
     },
     { role: "user", content: buildReflectionPrompt(input) },
   ]);
@@ -105,6 +120,35 @@ export async function generateReflectionPrompt(input: {
     content: result.content
       .replace(/^["']|["']$/g, "")
       .replace(/^Pertanyaan:\s*/i, "")
+    .trim(),
+  };
+}
+
+export async function generateReflectionDraft(input: {
+  story: StoryWithMedia;
+  quoteText?: string;
+  annotationText?: string;
+  studentMessages: string[];
+}) {
+  const result = await requestChatCompletion([
+    {
+      role: "system",
+      content:
+        "Anda membuat teks awal refleksi mahasiswa berdasarkan diskusi cerpen. Jangan menambah ide di luar input mahasiswa. Tulis Bahasa Indonesia, orang pertama, singkat, dan tetap bisa diedit mahasiswa. Jangan beri judul atau awalan seperti 'Draf Refleksi:'.",
+    },
+    { role: "user", content: buildReflectionDraftPrompt(input) },
+  ]);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ok: true as const,
+    content: result.content
+      .replace(/^["']|["']$/g, "")
+      .replace(/^#{1,6}\s*Draf Refleksi\s*:?\s*/i, "")
+      .replace(/^Draf Refleksi\s*:?\s*/i, "")
       .trim(),
   };
 }

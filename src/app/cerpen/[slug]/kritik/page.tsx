@@ -12,13 +12,12 @@ import {
   Field,
   PageIntro,
   SuccessBanner,
-  inputClassName,
   textareaClassName,
 } from "@/components/ui";
 import { quoteFallbackMessage, selectStableQuote } from "@/lib/quote";
 import { getCurrentStudent } from "@/lib/session";
 import { getLatestAnnotation, getStoryBySlug } from "@/lib/storage";
-import { firstSearchValue, formatMonth, perspectiveLabel } from "@/lib/utils";
+import { firstSearchValue, formatMonth } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +58,7 @@ export default async function CritiquePage({
         <PageIntro
           eyebrow={story.title}
           title="Tulis Kritik terhadap Kutipan"
-          description="Baca kutipan berikut, lalu tuliskan kritik atau anotasi berdasarkan pemahamanmu."
+          description="Baca kutipan berikut, lalu tuliskan kritik atau anotasi berdasarkan pemahaman Anda."
         />
 
         {!student ? (
@@ -93,27 +92,15 @@ export default async function CritiquePage({
             <input type="hidden" name="quoteText" value={quote} />
             <ErrorBanner message={error} />
             <SuccessBanner
-              message={saved ? "Kritikmu berhasil disimpan." : null}
+              message={saved ? "Kritik Anda berhasil disimpan." : null}
             />
-
-            <Field label="Sudut Pandang" name="perspective">
-              <select
-                id="perspective"
-                name="perspective"
-                className={inputClassName}
-              >
-                <option value="general">Umum</option>
-                <option value="structural">Struktural</option>
-                <option value="non_structural">Non-struktural</option>
-              </select>
-            </Field>
 
             <Field label="Kritik atau Anotasi" name="critiqueText">
               <textarea
                 id="critiqueText"
                 name="critiqueText"
                 className={textareaClassName}
-                placeholder="Tuliskan kritik, pertanyaan, atau pengamatanmu terhadap kutipan ini..."
+                placeholder="Tuliskan kritik, pertanyaan, atau pengamatan Anda terhadap kutipan ini..."
                 required
                 minLength={20}
                 maxLength={3000}
@@ -132,9 +119,6 @@ export default async function CritiquePage({
               <h2 className="text-lg font-bold text-foreground">
                 Kritik Terakhir
               </h2>
-              <Badge tone="success">
-                {perspectiveLabel(latestAnnotation.perspective)}
-              </Badge>
             </div>
             <p className="text-sm leading-6 text-muted">
               {latestAnnotation.critiqueText}

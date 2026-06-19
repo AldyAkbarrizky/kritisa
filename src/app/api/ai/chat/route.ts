@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAiReply } from "@/lib/ai/client";
+import { checkAiDiscussionScope } from "@/lib/ai/guardrails";
+import { buildAiChatQuota } from "@/lib/ai/limits";
 import type { Annotation } from "@/lib/types";
 import { getCurrentStudent } from "@/lib/session";
 import {
   addAiMessage,
+  countStudentAiChatMessages,
   getConversationMessages,
   getLatestAnnotation,
   getOrCreateAiConversation,
@@ -64,12 +67,46 @@ export async function POST(request: NextRequest) {
     annotationId: body.annotationId || annotation?.id,
   });
   const history = await getConversationMessages(conversation.id);
+  const usedMessages = await countStudentAiChatMessages(student.id, story.id);
+  const currentQuota = buildAiChatQuota(usedMessages);
 
-  await addAiMessage({
-    conversationId: conversation.id,
-    role: "student",
-    content: parsedMessage.data,
+  if (currentQuota.remaining <= 0) {
+    return error(
+      `Kuota diskusi AI untuk cerpen ini sudah habis (${currentQuota.used}/${currentQuota.limit} pesan). Anda bisa melanjutkan ke refleksi dengan hasil diskusi yang sudah ada.`,
+      429,
+    );
+  }
+
+  const guardrail = checkAiDiscussionScope({
+    message: parsedMessage.data,
+    story,
+    quoteText: body.quoteText || annotation?.quoteText,
+    annotation: annotation as Annotation | null,
+    history,
   });
+
+  if (!guardrail.allowed) {
+    await addAiMessage({
+      conversationId: conversation.id,
+      role: "student",
+      content: parsedMessage.data,
+    });
+    await addAiMessage({
+      conversationId: conversation.id,
+      role: "assistant",
+      content: guardrail.reply,
+    });
+    const updatedQuota = buildAiChatQuota(usedMessages + 1);
+
+    return NextResponse.json({
+      ok: true,
+      data: {
+        reply: guardrail.reply,
+        conversationId: conversation.id,
+        quota: updatedQuota,
+      },
+    });
+  }
 
   const aiResult = await generateAiReply({
     story,
@@ -81,22 +118,29 @@ export async function POST(request: NextRequest) {
 
   if (!aiResult.ok) {
     return error(
-      `${aiResult.message} Kamu tetap bisa melanjutkan anotasi dan refleksi secara manual.`,
+      `${aiResult.message} Anda tetap bisa melanjutkan anotasi dan refleksi secara manual.`,
       503,
     );
   }
 
   await addAiMessage({
     conversationId: conversation.id,
+    role: "student",
+    content: parsedMessage.data,
+  });
+  await addAiMessage({
+    conversationId: conversation.id,
     role: "assistant",
     content: aiResult.content,
   });
+  const updatedQuota = buildAiChatQuota(usedMessages + 1);
 
   return NextResponse.json({
     ok: true,
     data: {
       reply: aiResult.content,
       conversationId: conversation.id,
+      quota: updatedQuota,
     },
   });
 }

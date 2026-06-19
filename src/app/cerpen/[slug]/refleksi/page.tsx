@@ -13,14 +13,25 @@ import {
   SuccessBanner,
   textareaClassName,
 } from "@/components/ui";
-import { generateReflectionPrompt } from "@/lib/ai/client";
+import {
+  generateReflectionDraft,
+  generateReflectionPrompt,
+} from "@/lib/ai/client";
+import { isAiGuardReply } from "@/lib/ai/guardrails";
 import { selectReflectionPrompt } from "@/lib/reflection";
 import { getCurrentStudent } from "@/lib/session";
 import {
+  getLatestAiConversationMessages,
   getLatestAnnotation,
   getLatestReflection,
   getStoryBySlug,
 } from "@/lib/storage";
+import type {
+  AiMessage,
+  Annotation,
+  Reflection,
+  StoryWithMedia,
+} from "@/lib/types";
 import { firstSearchValue } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +39,36 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Refleksi Membaca",
 };
+
+function getRelevantStudentMessages(messages: AiMessage[]) {
+  return messages
+    .map((message, index) => ({
+      message,
+      nextMessage: messages[index + 1],
+    }))
+    .filter(({ message, nextMessage }) => {
+      if (message.role !== "student") {
+        return false;
+      }
+
+      return !nextMessage || !isAiGuardReply(nextMessage.content);
+    })
+    .map(({ message }) => message.content);
+}
+
+function buildFallbackReflectionDraft(input: {
+  story: StoryWithMedia;
+  annotation?: Annotation | null;
+  studentMessages: string[];
+}) {
+  const discussionFocus = input.studentMessages
+    .slice(-3)
+    .map((message) => message.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("; ");
+
+  return `Dalam diskusi tentang cerpen "${input.story.title}", saya mulai melihat bahwa bagian yang saya bahas perlu dikaitkan dengan bukti dari teks. ${input.annotation ? `Anotasi saya tentang kutipan tersebut membantu saya menandai persoalan utama yang perlu dijelaskan lebih hati-hati. ` : ""}Pertanyaan yang muncul dalam diskusi adalah: ${discussionFocus}. Dari sini, saya perlu menyusun refleksi dengan lebih jelas agar pendapat saya tidak hanya berupa kesan, tetapi juga didukung alasan dan bagian cerita yang relevan.`;
+}
 
 export default async function ReflectionPage({
   params,
@@ -47,12 +88,17 @@ export default async function ReflectionPage({
     notFound();
   }
 
-  const annotation = student
-    ? await getLatestAnnotation(student.id, story.id)
-    : null;
-  const reflection = student
-    ? await getLatestReflection(student.id, story.id)
-    : null;
+  const [annotation, reflection, discussionMessages]: [
+    Annotation | null,
+    Reflection | null,
+    AiMessage[],
+  ] = student
+    ? await Promise.all([
+        getLatestAnnotation(student.id, story.id),
+        getLatestReflection(student.id, story.id),
+        getLatestAiConversationMessages(student.id, story.id),
+      ])
+    : [null, null, []];
 
   let prompt: string;
   if (student && annotation) {
@@ -70,6 +116,25 @@ export default async function ReflectionPage({
     );
   }
 
+  const relevantStudentMessages = getRelevantStudentMessages(discussionMessages);
+  let draftAnswer = "";
+
+  if (student && !reflection && relevantStudentMessages.length > 0) {
+    const aiDraft = await generateReflectionDraft({
+      story,
+      quoteText: annotation?.quoteText,
+      annotationText: annotation?.critiqueText,
+      studentMessages: relevantStudentMessages,
+    });
+    draftAnswer = aiDraft.ok
+      ? aiDraft.content
+      : buildFallbackReflectionDraft({
+          story,
+          annotation,
+          studentMessages: relevantStudentMessages,
+        });
+  }
+
   const error = firstSearchValue(query.error);
 
   return (
@@ -79,7 +144,7 @@ export default async function ReflectionPage({
         <PageIntro
           eyebrow={story.title}
           title="Refleksi Membaca"
-          description="Tuliskan apa yang kamu pahami, pertanyakan, atau pelajari setelah membaca cerpen ini."
+          description="Tuliskan apa yang Anda pahami, pertanyakan, atau pelajari setelah membaca cerpen ini."
         />
 
         {!student ? (
@@ -110,20 +175,26 @@ export default async function ReflectionPage({
             <input type="hidden" name="promptText" value={prompt} />
             <ErrorBanner message={error} />
             <SuccessBanner
-              message={reflection ? "Refleksimu berhasil disimpan." : null}
+              message={reflection ? "Refleksi Anda berhasil disimpan." : null}
             />
             <Field label="Jawaban Refleksi" name="answerText">
               <textarea
                 id="answerText"
                 name="answerText"
                 className={textareaClassName}
-                placeholder="Tuliskan refleksimu di sini..."
-                defaultValue={reflection?.answerText ?? ""}
+                placeholder="Tuliskan refleksi Anda di sini..."
+                defaultValue={reflection?.answerText ?? draftAnswer}
                 required
                 minLength={20}
                 maxLength={3000}
               />
             </Field>
+            {draftAnswer && !reflection ? (
+              <p className="text-xs leading-5 text-muted">
+                Teks awal di atas dibuat otomatis dari input diskusi Anda dengan AI.
+                Baca ulang, ubah, dan lengkapi sebelum dikirim.
+              </p>
+            ) : null}
             <FormSubmit pendingLabel="Mengirim refleksi...">
               Kirim Refleksi
             </FormSubmit>

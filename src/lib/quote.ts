@@ -1,34 +1,52 @@
-const MIN_QUOTE_LENGTH = 70;
-const MAX_QUOTE_LENGTH = 260;
+const MIN_QUOTE_LENGTH = 250;
+const MAX_QUOTE_LENGTH = 900;
+const MIN_PARAGRAPHS = 1;
+const MAX_PARAGRAPHS = 3;
 
-function cleanSentence(value: string) {
-  return value.replace(/\s+/g, " ").replace(/^["'“”]+|["'“”]+$/g, "").trim();
+function cleanParagraph(value: string) {
+  return value
+    .replace(/\s+/g, " ")
+    .replace(/^["'""]+|["'""]+$/g, "")
+    .trim();
 }
 
 export function getQuoteCandidates(content: string) {
-  const sentences = content
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map(cleanSentence)
-    .filter((sentence) => sentence.length >= MIN_QUOTE_LENGTH);
+  const paragraphs = content
+    .split(/\n{2,}/)
+    .map(cleanParagraph)
+    .filter((p) => p.length >= 30);
 
-  if (sentences.length > 0) {
-    return sentences.map((sentence) =>
-      sentence.length > MAX_QUOTE_LENGTH
-        ? `${sentence.slice(0, MAX_QUOTE_LENGTH).trim()}...`
-        : sentence,
-    );
+  if (paragraphs.length === 0) {
+    const fallback = cleanParagraph(content);
+    if (fallback.length >= 30) {
+      return [
+        fallback.length > MAX_QUOTE_LENGTH
+          ? `${fallback.slice(0, MAX_QUOTE_LENGTH).trim()}...`
+          : fallback,
+      ];
+    }
+    return [];
   }
 
-  const paragraph = cleanSentence(content);
-  if (paragraph.length >= 30) {
-    return [
-      paragraph.length > MAX_QUOTE_LENGTH
-        ? `${paragraph.slice(0, MAX_QUOTE_LENGTH).trim()}...`
-        : paragraph,
-    ];
+  const chunks: string[] = [];
+
+  for (let start = 0; start < paragraphs.length; start++) {
+    for (let size = MIN_PARAGRAPHS; size <= MAX_PARAGRAPHS; size++) {
+      const slice = paragraphs.slice(start, start + size);
+      if (slice.length < MIN_PARAGRAPHS) continue;
+
+      let quote = slice.join("\n\n");
+      if (quote.length > MAX_QUOTE_LENGTH) {
+        quote = `${quote.slice(0, MAX_QUOTE_LENGTH).trim()}...`;
+      }
+
+      if (quote.length >= MIN_QUOTE_LENGTH) {
+        chunks.push(quote);
+      }
+    }
   }
 
-  return [];
+  return [...new Set(chunks)];
 }
 
 export function selectRandomQuote(content: string) {
