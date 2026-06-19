@@ -131,8 +131,8 @@ export default async function StoryDetailPage({
             Langkah Berikutnya
           </h2>
           <p className="text-sm leading-6 text-muted">
-            Ambil satu kutipan dari cerpen ini, tulis kritik Anda, lalu lanjutkan
-            diskusi atau refleksi.
+            Ambil satu kutipan dari cerpen ini, tulis kritik Anda, lalu
+            lanjutkan diskusi atau refleksi.
           </p>
           <form action={selectQuoteAction}>
             <input type="hidden" name="slug" value={story.slug} />
@@ -140,22 +140,6 @@ export default async function StoryDetailPage({
               Ambil Kutipan Acak
             </FormSubmit>
           </form>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <ButtonLink
-              href={`/cerpen/${story.slug}/diskusi`}
-              variant="secondary"
-              fullWidth
-            >
-              Diskusikan dengan AI
-            </ButtonLink>
-            <ButtonLink
-              href={`/cerpen/${story.slug}/refleksi`}
-              variant="secondary"
-              fullWidth
-            >
-              Lanjut ke Refleksi
-            </ButtonLink>
-          </div>
         </Card>
         <SuccessBanner
           message={student ? `Identitas aktif: ${student.name}` : null}

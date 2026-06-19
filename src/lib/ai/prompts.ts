@@ -36,8 +36,11 @@ export function buildAiMessages(input: {
     `Penulis: ${input.story.author || "-"}`,
     `Media: ${input.story.mediaSource.name}`,
     `Ringkasan: ${input.story.summary}`,
+    `Isi cerpen (keseluruhan):\n${truncate(input.story.content, 4000)}`,
     input.quoteText ? `Kutipan yang dikritisi: ${input.quoteText}` : "",
-    input.annotation ? `Anotasi mahasiswa: ${input.annotation.critiqueText}` : "",
+    input.annotation
+      ? `Anotasi mahasiswa: ${input.annotation.critiqueText}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n");
