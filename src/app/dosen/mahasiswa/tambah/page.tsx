@@ -23,6 +23,7 @@ export default async function CreateMahasiswaPage({
     <DashboardShell
       title="Tambah Mahasiswa"
       description="Buat akun baru untuk mahasiswa."
+      backHref="/dosen/mahasiswa"
     >
       <Card>
         <form action={createMahasiswaAction} className="space-y-4">

@@ -8,7 +8,7 @@ import { DataTable } from "@/components/data-table";
 import { FormSubmit } from "@/components/form-submit";
 import { Badge } from "@/components/ui";
 import type { StoryWithMedia } from "@/lib/types";
-import { formatMonth } from "@/lib/utils";
+import { formatPublishDate } from "@/lib/utils";
 
 export function CerpenTable({ stories }: { stories: StoryWithMedia[] }) {
   const columns = useMemo<ColumnDef<StoryWithMedia, string>[]>(
@@ -31,10 +31,15 @@ export function CerpenTable({ stories }: { stories: StoryWithMedia[] }) {
       },
       {
         accessorKey: "publicationMonth",
-        header: "Bulan",
-        cell: (info) => (
-          <Badge tone="accent">{formatMonth(info.getValue())}</Badge>
-        ),
+        header: "Terbit",
+        cell: (info) => {
+          const row = info.row.original as StoryWithMedia;
+          return (
+            <span className="text-sm text-muted">
+              {formatPublishDate(row.publishedAt, row.publicationMonth)}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "status",

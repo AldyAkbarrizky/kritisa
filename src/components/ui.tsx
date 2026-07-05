@@ -116,6 +116,7 @@ export function Field({
   name,
   helper,
   error,
+  required,
   children,
 }: {
   label: string;
@@ -123,12 +124,18 @@ export function Field({
   name: string;
   helper?: string;
   error?: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
     <label className="block" htmlFor={name}>
       <span className="block text-sm font-semibold text-foreground">
         {label}
+        {required ? (
+          <span className="ml-0.5 text-danger" aria-hidden="true">
+            *
+          </span>
+        ) : null}
         {labelSuffix ? (
           <span className="ml-1 font-normal text-muted">{labelSuffix}</span>
         ) : null}

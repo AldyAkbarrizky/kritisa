@@ -196,7 +196,9 @@ export async function listStories(filters?: {
   media?: string;
   month?: string;
   search?: string;
-}): Promise<StoryWithMedia[]> {
+  limit?: number;
+  offset?: number;
+}): Promise<{ stories: StoryWithMedia[]; total: number }> {
   const conds: ReturnType<typeof eq>[] = [];
   if (!filters?.status || filters.status === "published")
     conds.push(eq(stories.status, "published"));
@@ -221,13 +223,22 @@ export async function listStories(filters?: {
         s.summary.toLowerCase().includes(term),
     );
   }
-  return Promise.all(result.map((r) => withMediaSource(r)));
+
+  const total = result.length;
+  const page = result.slice(
+    filters?.offset ?? 0,
+    filters?.limit ? (filters.offset ?? 0) + filters.limit : undefined,
+  );
+  return {
+    stories: await Promise.all(page.map((r) => withMediaSource(r))),
+    total,
+  };
 }
 
 export async function listPublicationMonths(
   status: StoryStatus | "all" = "published",
 ) {
-  const s = await listStories({ status });
+  const { stories: s } = await listStories({ status });
   return [...new Set(s.map((st) => st.publicationMonth))].sort().reverse();
 }
 

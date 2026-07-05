@@ -1,0 +1,86 @@
+- generic [active] [ref=f6e1]:
+  - img
+  - img
+  - generic [ref=f6e2]:
+    - banner [ref=f6e3]:
+      - generic [ref=f6e4]:
+        - link "Kritisa Dashboard Dosen" [ref=f6e5] [cursor=pointer]:
+          - /url: /
+          - img "Kritisa" [ref=f6e6]
+          - generic [ref=f6e7]: Dashboard Dosen
+        - generic [ref=f6e8]:
+          - link "Ringkasan" [ref=f6e9] [cursor=pointer]:
+            - /url: /dosen/dashboard
+          - link "Cerpen" [ref=f6e10] [cursor=pointer]:
+            - /url: /dosen/cerpen
+          - link "Media" [ref=f6e11] [cursor=pointer]:
+            - /url: /dosen/media
+          - link "Mahasiswa" [ref=f6e12] [cursor=pointer]:
+            - /url: /dosen/mahasiswa
+          - link "Jawaban" [ref=f6e13] [cursor=pointer]:
+            - /url: /dosen/jawaban
+          - link "← Kritisa" [ref=f6e14] [cursor=pointer]:
+            - /url: /
+          - button "Keluar" [ref=f6e16] [cursor=pointer]
+    - main [ref=f6e17]:
+      - navigation [ref=f6e18]:
+        - link "Dashboard" [ref=f6e19] [cursor=pointer]:
+          - /url: /dosen/dashboard
+        - generic [ref=f6e20]: /
+        - generic [ref=f6e21]: Tambah Cerpen
+      - generic [ref=f6e22]:
+        - heading "Tambah Cerpen" [level=1] [ref=f6e23]
+        - paragraph [ref=f6e24]: Masukkan cerita, metadata, dan status publish.
+      - generic [ref=f6e26]:
+        - generic [ref=f6e27]:
+          - generic [ref=f6e28]: Judul*
+          - textbox "Judul" [ref=f6e30]
+        - generic [ref=f6e31]:
+          - generic [ref=f6e32]:
+            - generic [ref=f6e33]: Penulis(Opsional)
+            - textbox "Penulis(Opsional)" [ref=f6e35]
+          - generic [ref=f6e36]:
+            - generic [ref=f6e37]: Media*
+            - combobox "Media" [ref=f6e39] [cursor=pointer]:
+              - option "Jawa Pos" [selected]
+              - option "Kompas"
+              - option "Media Indonesia"
+              - option "Republika"
+              - option "Tempo"
+        - generic [ref=f6e40]:
+          - generic [ref=f6e41]:
+            - generic [ref=f6e42]: Tanggal Terbit(Opsional)
+            - generic [ref=f6e43]: Isi jika tahu tanggal persis.
+            - textbox "Tanggal Terbit(Opsional) Isi jika tahu tanggal persis." [ref=f6e45]
+          - generic [ref=f6e46]:
+            - generic [ref=f6e47]: Bulan Terbit(Opsional)
+            - generic [ref=f6e48]: Atau cukup bulan & tahun saja.
+            - textbox "Bulan Terbit(Opsional) Atau cukup bulan & tahun saja." [ref=f6e50]
+        - generic [ref=f6e51]:
+          - generic [ref=f6e52]: URL Sumber(Opsional)
+          - generic [ref=f6e53]: Simpan atribusi sumber bila tersedia.
+          - textbox "URL Sumber(Opsional) Simpan atribusi sumber bila tersedia." [ref=f6e55]:
+            - /placeholder: https://...
+        - generic [ref=f6e56]:
+          - generic [ref=f6e57]: Gambar Sampul(Opsional)
+          - generic [ref=f6e58]: Tempel URL atau unggah gambar. Jika kosong, UI memakai blok warna.
+          - generic [ref=f6e60]:
+            - textbox "Gambar Sampul(Opsional) Tempel URL atau unggah gambar. Jika kosong, UI memakai blok warna. Unggah Gambar" [ref=f6e61]:
+              - /placeholder: https://...
+            - button "Unggah Gambar" [ref=f6e63] [cursor=pointer]
+        - generic [ref=f6e64]:
+          - generic [ref=f6e65]: Ringkasan*
+          - textbox "Ringkasan" [ref=f6e67]
+        - generic [ref=f6e68]:
+          - generic [ref=f6e69]: Isi Cerpen*
+          - generic [ref=f6e70]: Gunakan teks polos. Tekan Enter untuk paragraf baru.
+          - textbox "Isi Cerpen Gunakan teks polos. Tekan Enter untuk paragraf baru." [ref=f6e72]
+        - generic [ref=f6e73]:
+          - generic [ref=f6e74]: Status(Opsional)
+          - combobox "Status(Opsional)" [ref=f6e76] [cursor=pointer]:
+            - option "Draft" [selected]
+            - option "Published"
+        - button "Tambah Cerpen" [ref=f6e78] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f6e84] [cursor=pointer]:
+    - img [ref=f6e85]
+  - alert [ref=f6e88]

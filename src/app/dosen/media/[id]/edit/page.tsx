@@ -3,12 +3,7 @@ import { notFound } from "next/navigation";
 import { updateMediaSourceAction } from "@/app/actions";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FormSubmit } from "@/components/form-submit";
-import {
-  Card,
-  ErrorBanner,
-  Field,
-  inputClassName,
-} from "@/components/ui";
+import { Card, ErrorBanner, Field, inputClassName } from "@/components/ui";
 import { requireAuth } from "@/lib/auth";
 import { getMediaSourceById } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
@@ -40,12 +35,13 @@ export default async function EditMediaSourcePage({
     <DashboardShell
       title="Edit Media Sumber"
       description="Perbarui informasi media penerbit."
+      backHref="/dosen/media"
     >
       <Card>
         <form action={updateMediaSourceAction} className="space-y-4">
           <input type="hidden" name="id" value={source.id} />
           <ErrorBanner message={error} />
-          <Field label="Nama Media" name="name">
+          <Field label="Nama Media" name="name" required>
             <input
               id="name"
               name="name"
@@ -56,16 +52,7 @@ export default async function EditMediaSourcePage({
               maxLength={100}
             />
           </Field>
-          <Field label="Slug" name="slug">
-            <input
-              id="slug"
-              name="slug"
-              className={inputClassName}
-              defaultValue={source.slug}
-              maxLength={80}
-            />
-          </Field>
-          <Field label="URL Website" name="websiteUrl">
+          <Field label="URL Website" name="websiteUrl" labelSuffix="(Opsional)">
             <input
               id="websiteUrl"
               name="websiteUrl"

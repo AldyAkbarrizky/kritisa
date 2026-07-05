@@ -30,11 +30,21 @@ export default async function CatalogPage({
   const media = firstSearchValue(query.media) ?? "";
   const month = firstSearchValue(query.month) ?? "";
   const search = firstSearchValue(query.search) ?? "";
-  const [stories, mediaSources, months] = await Promise.all([
-    listStories({ media, month, search }),
+  const page = Math.max(1, Number(firstSearchValue(query.page)) || 1);
+  const perPage = 6;
+  const [result, mediaSources, months] = await Promise.all([
+    listStories({
+      media,
+      month,
+      search,
+      limit: perPage,
+      offset: (page - 1) * perPage,
+    }),
     getMediaSources(),
     listPublicationMonths(),
   ]);
+  const { stories, total } = result;
+  const totalPages = Math.ceil(total / perPage);
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,11 +107,44 @@ export default async function CatalogPage({
         </form>
 
         {stories.length > 0 ? (
-          <div className="grid gap-5 md:grid-cols-2">
-            {stories.map((story) => (
-              <StoryCard key={story.id} story={story} />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-5 md:grid-cols-2">
+              {stories.map((story) => (
+                <StoryCard key={story.id} story={story} />
+              ))}
+            </div>
+            {totalPages > 1 ? (
+              <nav className="flex items-center justify-center gap-2 pt-4">
+                {page > 1 ? (
+                  <a
+                    href={`/cerpen?${new URLSearchParams({ media, month, search, page: String(page - 1) }).toString()}`}
+                    className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-foreground transition hover:bg-surface-muted"
+                  >
+                    ← Sebelumnya
+                  </a>
+                ) : (
+                  <span className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-muted opacity-50">
+                    ← Sebelumnya
+                  </span>
+                )}
+                <span className="px-3 text-sm text-muted">
+                  {page} / {totalPages}
+                </span>
+                {page < totalPages ? (
+                  <a
+                    href={`/cerpen?${new URLSearchParams({ media, month, search, page: String(page + 1) }).toString()}`}
+                    className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-foreground transition hover:bg-surface-muted"
+                  >
+                    Selanjutnya →
+                  </a>
+                ) : (
+                  <span className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-muted opacity-50">
+                    Selanjutnya →
+                  </span>
+                )}
+              </nav>
+            ) : null}
+          </>
         ) : (
           <EmptyState
             title="Belum ada cerpen yang dipublikasikan."

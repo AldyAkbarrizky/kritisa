@@ -1,0 +1,12 @@
+- generic [active] [ref=f7e1]:
+  - img
+  - img
+  - button "Open Next.js Dev Tools" [ref=f7e7] [cursor=pointer]:
+    - img [ref=f7e8]
+  - alert [ref=f7e11]
+  - main [ref=f7e12]:
+    - generic [ref=f7e13]:
+      - heading "Halaman tidak ditemukan" [level=1] [ref=f7e14]
+      - paragraph [ref=f7e15]: Konten yang Anda cari tidak tersedia atau belum dipublikasikan.
+      - link "Kembali ke Katalog" [ref=f7e17] [cursor=pointer]:
+        - /url: /cerpen

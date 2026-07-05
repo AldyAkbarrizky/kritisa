@@ -23,7 +23,7 @@ export default async function AnswersPage({
   const storyId = firstSearchValue(query.storyId) ?? "";
   const mediaSourceId = firstSearchValue(query.mediaSourceId) ?? "";
   const [stories, mediaSources, rows] = await Promise.all([
-    listStories({ status: "all" }),
+    listStories({ status: "all" }).then((r) => r.stories),
     getMediaSources(),
     listAnswerRows({
       storyId: storyId || undefined,
@@ -40,6 +40,7 @@ export default async function AnswersPage({
     <DashboardShell
       title="Jawaban Mahasiswa"
       description="Lihat kritik, refleksi, dan unduh jawaban dalam format CSV."
+      backHref="/dosen/dashboard"
     >
       <form
         className="rounded-lg border border-border bg-surface p-4 shadow-sm"

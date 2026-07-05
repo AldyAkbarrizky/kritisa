@@ -2,8 +2,7 @@ import { sanitizeLongText, sanitizeText, slugify } from "@/lib/utils";
 import type { Perspective, StoryStatus } from "@/lib/types";
 
 export type ValidationResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; message: string };
+  { ok: true; data: T } | { ok: false; message: string };
 
 function lengthBetween(value: string, min: number, max: number) {
   return value.length >= min && value.length <= max;
@@ -60,7 +59,10 @@ export function validateAnnotation(formData: FormData): ValidationResult<{
       : "general";
 
   if (!lengthBetween(quoteText, 12, 1200)) {
-    return { ok: false, message: "Kutipan belum tersedia atau terlalu pendek." };
+    return {
+      ok: false,
+      message: "Kutipan belum tersedia atau terlalu pendek.",
+    };
   }
 
   if (!lengthBetween(critiqueText, 20, 3000)) {
@@ -112,8 +114,7 @@ export function validateStory(formData: FormData): ValidationResult<{
   status: StoryStatus;
 }> {
   const title = sanitizeText(formData.get("title"));
-  const requestedSlug = sanitizeText(formData.get("slug"));
-  const slug = requestedSlug ? slugify(requestedSlug) : slugify(title);
+  const slug = slugify(title);
   const author = sanitizeText(formData.get("author"));
   const mediaSourceId = sanitizeText(formData.get("mediaSourceId"));
   const publishedAt = sanitizeText(formData.get("publishedAt"));
@@ -123,7 +124,8 @@ export function validateStory(formData: FormData): ValidationResult<{
   const summary = sanitizeLongText(formData.get("summary"));
   const content = sanitizeLongText(formData.get("content"));
   const statusValue = sanitizeText(formData.get("status"));
-  const status: StoryStatus = statusValue === "published" ? "published" : "draft";
+  const status: StoryStatus =
+    statusValue === "published" ? "published" : "draft";
 
   if (!lengthBetween(title, 3, 200)) {
     return { ok: false, message: "Judul wajib diisi 3-200 karakter." };
@@ -137,8 +139,12 @@ export function validateStory(formData: FormData): ValidationResult<{
     return { ok: false, message: "Media sumber wajib dipilih." };
   }
 
-  if (!/^\d{4}-\d{2}$/.test(publicationMonth)) {
-    return { ok: false, message: "Bulan terbit wajib memakai format YYYY-MM." };
+  if (publicationMonth && !/^\d{4}-\d{2}$/.test(publicationMonth)) {
+    return { ok: false, message: "Format bulan terbit tidak valid (YYYY-MM)." };
+  }
+
+  if (publishedAt && isNaN(Date.parse(publishedAt))) {
+    return { ok: false, message: "Format tanggal terbit tidak valid." };
   }
 
   if (sourceUrl && !validOptionalUrl(sourceUrl)) {
@@ -154,8 +160,15 @@ export function validateStory(formData: FormData): ValidationResult<{
   }
 
   if (!lengthBetween(content, 80, 20000)) {
-    return { ok: false, message: "Isi cerpen wajib diisi minimal 80 karakter." };
+    return {
+      ok: false,
+      message: "Isi cerpen wajib diisi minimal 80 karakter.",
+    };
   }
+
+  // Derive publishedAt from publicationMonth if no full date given
+  const finalPublishedAt =
+    publishedAt || (publicationMonth ? `${publicationMonth}-01` : "");
 
   return {
     ok: true,
@@ -164,7 +177,7 @@ export function validateStory(formData: FormData): ValidationResult<{
       slug,
       author,
       mediaSourceId,
-      publishedAt,
+      publishedAt: finalPublishedAt,
       publicationMonth,
       sourceUrl,
       coverImageUrl,

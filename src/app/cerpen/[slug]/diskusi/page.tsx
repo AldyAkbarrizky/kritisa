@@ -15,7 +15,7 @@ import {
   getStoryBySlug,
   countUserChatMessagesToday,
 } from "@/lib/storage";
-import { firstSearchValue, formatMonth } from "@/lib/utils";
+import { firstSearchValue, formatPublishDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Diskusi AI" };
@@ -68,7 +68,7 @@ export default async function AiDiscussionPage({
               <div className="flex flex-wrap gap-2">
                 <Badge tone="primary">{story.mediaSource.name}</Badge>
                 <Badge tone="accent">
-                  {formatMonth(story.publicationMonth)}
+                  {formatPublishDate(story.publishedAt, story.publicationMonth)}
                 </Badge>
               </div>
               <p className="text-sm leading-6 text-muted">{story.summary}</p>

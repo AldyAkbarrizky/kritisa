@@ -1,0 +1,89 @@
+- generic [active] [ref=f10e1]:
+  - img
+  - img
+  - generic [ref=f10e2]:
+    - banner [ref=f10e3]:
+      - generic [ref=f10e4]:
+        - link "Kritisa Dashboard Dosen" [ref=f10e5] [cursor=pointer]:
+          - /url: /
+          - img "Kritisa" [ref=f10e6]
+          - generic [ref=f10e7]: Dashboard Dosen
+        - generic [ref=f10e8]:
+          - link "Ringkasan" [ref=f10e9] [cursor=pointer]:
+            - /url: /dosen/dashboard
+          - link "Cerpen" [ref=f10e10] [cursor=pointer]:
+            - /url: /dosen/cerpen
+          - link "Media" [ref=f10e11] [cursor=pointer]:
+            - /url: /dosen/media
+          - link "Mahasiswa" [ref=f10e12] [cursor=pointer]:
+            - /url: /dosen/mahasiswa
+          - link "Jawaban" [ref=f10e13] [cursor=pointer]:
+            - /url: /dosen/jawaban
+          - link "← Kritisa" [ref=f10e14] [cursor=pointer]:
+            - /url: /
+          - button "Keluar" [ref=f10e16] [cursor=pointer]
+    - main [ref=f10e17]:
+      - navigation [ref=f10e18]:
+        - link "Dashboard" [ref=f10e19] [cursor=pointer]:
+          - /url: /dosen/dashboard
+        - generic [ref=f10e20]: /
+        - generic [ref=f10e21]: Tambah Cerpen
+      - generic [ref=f10e22]:
+        - heading "Tambah Cerpen" [level=1] [ref=f10e23]
+        - paragraph [ref=f10e24]: Masukkan cerita, metadata, dan status publish.
+      - generic [ref=f10e26]:
+        - button "✕ Kosongkan Semua" [ref=f10e28] [cursor=pointer]
+        - generic [ref=f10e29]:
+          - generic [ref=f10e30]: Judul*
+          - textbox "Judul" [ref=f10e32]
+        - generic [ref=f10e33]:
+          - generic [ref=f10e34]:
+            - generic [ref=f10e35]: Penulis(Opsional)
+            - textbox "Penulis(Opsional)" [ref=f10e37]
+          - generic [ref=f10e38]:
+            - generic [ref=f10e39]: Media*
+            - combobox "Media" [ref=f10e41] [cursor=pointer]:
+              - option "Jawa Pos" [selected]
+              - option "Kompas"
+              - option "Media Indonesia"
+              - option "Republika"
+              - option "Tempo"
+        - generic [ref=f10e42]:
+          - generic [ref=f10e43]:
+            - generic [ref=f10e44]: Tanggal Terbit(Opsional)
+            - generic [ref=f10e45]: Isi jika tahu tanggal persis.
+            - textbox "Tanggal Terbit(Opsional) Isi jika tahu tanggal persis." [ref=f10e47]
+          - generic [ref=f10e48]:
+            - generic [ref=f10e49]: Bulan Terbit(Opsional)
+            - generic [ref=f10e50]: Atau cukup bulan & tahun saja.
+            - textbox "Bulan Terbit(Opsional) Atau cukup bulan & tahun saja." [ref=f10e52]
+        - generic [ref=f10e53]:
+          - generic [ref=f10e54]: URL Sumber(Opsional)
+          - generic [ref=f10e55]: Simpan atribusi sumber bila tersedia.
+          - textbox "URL Sumber(Opsional) Simpan atribusi sumber bila tersedia." [ref=f10e57]:
+            - /placeholder: https://...
+        - generic [ref=f10e58]:
+          - generic [ref=f10e59]: Gambar Sampul(Opsional)
+          - generic [ref=f10e60]: Tempel URL atau unggah gambar. Jika kosong, UI memakai blok warna.
+          - generic [ref=f10e62]:
+            - textbox "Gambar Sampul(Opsional) Tempel URL atau unggah gambar. Jika kosong, UI memakai blok warna. Unggah Gambar" [ref=f10e63]:
+              - /placeholder: https://...
+            - button "Unggah Gambar" [ref=f10e65] [cursor=pointer]
+        - generic [ref=f10e66]:
+          - generic [ref=f10e67]: Ringkasan*
+          - textbox "Ringkasan" [ref=f10e69]
+        - generic [ref=f10e70]:
+          - generic [ref=f10e71]: Isi Cerpen*
+          - generic [ref=f10e72]: Gunakan teks polos. Tekan Enter untuk paragraf baru.
+          - generic [ref=f10e73]:
+            - textbox "Isi Cerpen Gunakan teks polos. Tekan Enter untuk paragraf baru. ✕ Hapus Isi" [ref=f10e74]
+            - button "✕ Hapus Isi" [ref=f10e76] [cursor=pointer]
+        - generic [ref=f10e77]:
+          - generic [ref=f10e78]: Status(Opsional)
+          - combobox "Status(Opsional)" [ref=f10e80] [cursor=pointer]:
+            - option "Draft" [selected]
+            - option "Published"
+        - button "Tambah Cerpen" [ref=f10e82] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f10e88] [cursor=pointer]:
+    - img [ref=f10e89]
+  - alert [ref=f10e92]

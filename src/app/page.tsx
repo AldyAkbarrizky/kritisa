@@ -6,7 +6,7 @@ import { listStories } from "@/lib/storage";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const stories = (await listStories()).slice(0, 2);
+  const stories = (await listStories()).stories.slice(0, 2);
 
   return (
     <div className="min-h-screen bg-background">

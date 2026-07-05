@@ -3,12 +3,7 @@ import { notFound } from "next/navigation";
 import { createMediaSourceAction } from "@/app/actions";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { FormSubmit } from "@/components/form-submit";
-import {
-  Card,
-  ErrorBanner,
-  Field,
-  inputClassName,
-} from "@/components/ui";
+import { Card, ErrorBanner, Field, inputClassName } from "@/components/ui";
 import { requireAuth } from "@/lib/auth";
 import { firstSearchValue } from "@/lib/utils";
 
@@ -31,11 +26,12 @@ export default async function CreateMediaSourcePage({
     <DashboardShell
       title="Tambah Media Sumber"
       description="Tambahkan media penerbit baru untuk cerpen."
+      backHref="/dosen/media"
     >
       <Card>
         <form action={createMediaSourceAction} className="space-y-4">
           <ErrorBanner message={error} />
-          <Field label="Nama Media" name="name">
+          <Field label="Nama Media" name="name" required>
             <input
               id="name"
               name="name"
@@ -46,20 +42,7 @@ export default async function CreateMediaSourcePage({
               placeholder="Contoh: Kompas, Tempo..."
             />
           </Field>
-          <Field
-            label="Slug"
-            name="slug"
-            helper="Kosongkan untuk dibuat otomatis dari nama."
-          >
-            <input
-              id="slug"
-              name="slug"
-              className={inputClassName}
-              maxLength={80}
-              placeholder="kompas"
-            />
-          </Field>
-          <Field label="URL Website" name="websiteUrl">
+          <Field label="URL Website" name="websiteUrl" labelSuffix="(Opsional)">
             <input
               id="websiteUrl"
               name="websiteUrl"

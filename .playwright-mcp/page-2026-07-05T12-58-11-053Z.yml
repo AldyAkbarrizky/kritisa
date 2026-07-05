@@ -1,0 +1,78 @@
+- generic [active] [ref=f15e1]:
+  - img
+  - img
+  - generic [ref=f15e2]:
+    - banner [ref=f15e3]:
+      - generic [ref=f15e4]:
+        - link "Kritisa Dashboard Dosen" [ref=f15e5] [cursor=pointer]:
+          - /url: /
+          - img "Kritisa" [ref=f15e6]
+          - generic [ref=f15e7]: Dashboard Dosen
+        - generic [ref=f15e8]:
+          - link "Ringkasan" [ref=f15e9] [cursor=pointer]:
+            - /url: /dosen/dashboard
+          - link "Cerpen" [ref=f15e10] [cursor=pointer]:
+            - /url: /dosen/cerpen
+          - link "Media" [ref=f15e11] [cursor=pointer]:
+            - /url: /dosen/media
+          - link "Mahasiswa" [ref=f15e12] [cursor=pointer]:
+            - /url: /dosen/mahasiswa
+          - link "Jawaban" [ref=f15e13] [cursor=pointer]:
+            - /url: /dosen/jawaban
+          - link "← Kritisa" [ref=f15e14] [cursor=pointer]:
+            - /url: /
+          - button "Keluar" [ref=f15e16] [cursor=pointer]
+    - main [ref=f15e17]:
+      - navigation [ref=f15e18]:
+        - link "Dashboard" [ref=f15e19] [cursor=pointer]:
+          - /url: /dosen/dashboard
+        - generic [ref=f15e20]: /
+        - generic [ref=f15e21]: Ringkasan Aktivitas
+      - generic [ref=f15e22]:
+        - heading "Ringkasan Aktivitas" [level=1] [ref=f15e23]
+        - paragraph [ref=f15e24]: Pantau cerpen, identitas mahasiswa, kritik, refleksi, dan jawaban terbaru.
+      - generic [ref=f15e25]:
+        - generic [ref=f15e26]:
+          - paragraph [ref=f15e27]: Cerpen Published
+          - paragraph [ref=f15e28]: "2"
+        - generic [ref=f15e29]:
+          - paragraph [ref=f15e30]: Total Cerpen
+          - paragraph [ref=f15e31]: "4"
+        - generic [ref=f15e32]:
+          - paragraph [ref=f15e33]: Mahasiswa
+          - paragraph [ref=f15e34]: "3"
+        - generic [ref=f15e35]:
+          - paragraph [ref=f15e36]: Kritik
+          - paragraph [ref=f15e37]: "3"
+        - generic [ref=f15e38]:
+          - paragraph [ref=f15e39]: Refleksi
+          - paragraph [ref=f15e40]: "2"
+      - generic [ref=f15e41]:
+        - generic [ref=f15e42]:
+          - heading "Jawaban Terbaru" [level=2] [ref=f15e43]
+          - link "Lihat Semua Jawaban" [ref=f15e44] [cursor=pointer]:
+            - /url: /dosen/jawaban
+        - generic [ref=f15e45]:
+          - generic [ref=f15e46]:
+            - generic [ref=f15e47]:
+              - generic [ref=f15e48]: Refleksi
+              - generic [ref=f15e49]: Tempo
+            - generic [ref=f15e50]:
+              - heading "Aldy Akbarrizky" [level=3] [ref=f15e51]
+              - paragraph [ref=f15e52]: D4 Teknik Informatika · Politeknik Negeri Bandung
+            - paragraph [ref=f15e53]: Bunyi Hujan di Atap Seng
+            - paragraph [ref=f15e54]: Saya masih merasa belum sepenuhnya menangkap makna dari kutipan tersebut; suara hujan yang tak pernah sama seolah menggambarkan ketidakpastian dalam kehidupan s...
+            - paragraph [ref=f15e55]: 19 Jun 2026, 20.01
+          - generic [ref=f15e56]:
+            - generic [ref=f15e57]:
+              - generic [ref=f15e58]: Refleksi
+              - generic [ref=f15e59]: Kompas
+            - generic [ref=f15e60]:
+              - heading "Aldy Akbarrizky" [level=3] [ref=f15e61]
+              - paragraph [ref=f15e62]: D4 Teknik Informatika · Politeknik Negeri Bandung
+            - paragraph [ref=f15e63]: Senja di Halte Tua
+            - paragraph [ref=f15e64]: Saya menelaah cerpen “Senja di Halte Tua” dan menyadari bahwa tema utamanya adalah kerinduan sang anak kepada ayahnya, yang terasa kuat lewat ingatan tentang la...
+            - paragraph [ref=f15e65]: 19 Jun 2026, 17.32
+  - button "Open Next.js Dev Tools" [ref=f15e71] [cursor=pointer]:
+    - img [ref=f15e72]
+  - alert [ref=f15e75]

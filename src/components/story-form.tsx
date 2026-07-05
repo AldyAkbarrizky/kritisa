@@ -1,7 +1,12 @@
+"use client";
+
+import { useRef } from "react";
 import type { MediaSource, StoryWithMedia } from "@/lib/types";
 import { createStoryAction, updateStoryAction } from "@/app/actions";
 import { FormSubmit } from "@/components/form-submit";
+import { ImageUpload } from "@/components/image-upload";
 import {
+  Button,
   Card,
   ErrorBanner,
   Field,
@@ -25,10 +30,19 @@ export function StoryForm({
   const returnPath = story
     ? `/dosen/cerpen/${story.id}/edit`
     : "/dosen/cerpen/tambah";
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function handleClearContent() {
+    const el = document.getElementById("content") as HTMLTextAreaElement | null;
+    if (el) {
+      el.value = "";
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }
 
   return (
     <Card>
-      <form action={action} className="space-y-4">
+      <form ref={formRef} action={action} className="space-y-4" id="story-form">
         <input type="hidden" name="id" value={story?.id ?? ""} />
         <input type="hidden" name="returnPath" value={returnPath} />
         <ErrorBanner message={error} />
@@ -36,7 +50,7 @@ export function StoryForm({
           message={saved ? "Perubahan cerpen berhasil disimpan." : null}
         />
 
-        <Field label="Judul" name="title">
+        <Field label="Judul" name="title" required>
           <input
             id="title"
             name="title"
@@ -48,22 +62,8 @@ export function StoryForm({
           />
         </Field>
 
-        <Field
-          label="Slug"
-          name="slug"
-          helper="Kosongkan saat membuat cerpen agar dibuat dari judul."
-        >
-          <input
-            id="slug"
-            name="slug"
-            className={inputClassName}
-            defaultValue={story?.slug ?? ""}
-            maxLength={100}
-          />
-        </Field>
-
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Penulis" name="author">
+          <Field label="Penulis" name="author" labelSuffix="(Opsional)">
             <input
               id="author"
               name="author"
@@ -73,7 +73,7 @@ export function StoryForm({
             />
           </Field>
 
-          <Field label="Media" name="mediaSourceId">
+          <Field label="Media" name="mediaSourceId" required>
             <select
               id="mediaSourceId"
               name="mediaSourceId"
@@ -93,26 +93,36 @@ export function StoryForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Tanggal Terbit"
-            labelSuffix="(Opsional)"
             name="publishedAt"
+            labelSuffix="(Opsional)"
+            helper="Isi jika tahu tanggal persis."
           >
             <input
               id="publishedAt"
               name="publishedAt"
               type="date"
               className={inputClassName}
-              defaultValue={story?.publishedAt ?? ""}
+              defaultValue={
+                story?.publishedAt &&
+                story.publishedAt !== `${story.publicationMonth}-01`
+                  ? story.publishedAt
+                  : ""
+              }
             />
           </Field>
 
-          <Field label="Bulan Terbit" name="publicationMonth">
+          <Field
+            label="Bulan Terbit"
+            name="publicationMonth"
+            labelSuffix="(Opsional)"
+            helper="Atau cukup bulan & tahun saja."
+          >
             <input
               id="publicationMonth"
               name="publicationMonth"
               type="month"
               className={inputClassName}
               defaultValue={story?.publicationMonth ?? ""}
-              required
             />
           </Field>
         </div>
@@ -120,6 +130,7 @@ export function StoryForm({
         <Field
           label="URL Sumber"
           name="sourceUrl"
+          labelSuffix="(Opsional)"
           helper="Simpan atribusi sumber bila tersedia."
         >
           <input
@@ -133,21 +144,36 @@ export function StoryForm({
         </Field>
 
         <Field
-          label="URL Gambar Sampul"
+          label="Gambar Sampul"
           name="coverImageUrl"
-          helper="Opsional. Jika kosong, UI memakai blok warna."
+          labelSuffix="(Opsional)"
+          helper="Tempel URL atau unggah gambar. Jika kosong, UI memakai blok warna."
         >
-          <input
-            id="coverImageUrl"
-            name="coverImageUrl"
-            type="url"
-            className={inputClassName}
-            defaultValue={story?.coverImageUrl ?? ""}
-            placeholder="https://..."
-          />
+          <div className="space-y-2">
+            <input
+              id="coverImageUrl"
+              name="coverImageUrl"
+              type="url"
+              className={inputClassName}
+              defaultValue={story?.coverImageUrl ?? ""}
+              placeholder="https://..."
+            />
+            <ImageUpload
+              label="Unggah Gambar"
+              onUploaded={(url) => {
+                const input = document.getElementById(
+                  "coverImageUrl",
+                ) as HTMLInputElement | null;
+                if (input) {
+                  input.value = url;
+                  input.dispatchEvent(new Event("input", { bubbles: true }));
+                }
+              }}
+            />
+          </div>
         </Field>
 
-        <Field label="Ringkasan" name="summary">
+        <Field label="Ringkasan" name="summary" required>
           <textarea
             id="summary"
             name="summary"
@@ -162,7 +188,8 @@ export function StoryForm({
         <Field
           label="Isi Cerpen"
           name="content"
-          helper="Gunakan teks polos. Pisahkan paragraf dengan baris kosong."
+          required
+          helper="Gunakan teks polos. Tekan Enter untuk paragraf baru."
         >
           <textarea
             id="content"
@@ -172,9 +199,14 @@ export function StoryForm({
             required
             minLength={80}
           />
+          <div className="mt-1 flex justify-end">
+            <Button type="button" variant="ghost" onClick={handleClearContent}>
+              ✕ Hapus Isi
+            </Button>
+          </div>
         </Field>
 
-        <Field label="Status" name="status">
+        <Field label="Status" name="status" labelSuffix="(Opsional)">
           <select
             id="status"
             name="status"

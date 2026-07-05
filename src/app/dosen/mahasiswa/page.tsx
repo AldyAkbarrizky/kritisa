@@ -25,6 +25,7 @@ export default async function MahasiswaPage({
     <DashboardShell
       title="Kelola Mahasiswa"
       description="Tambah, edit, hapus, atau import mahasiswa dari Excel."
+      backHref="/dosen/dashboard"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

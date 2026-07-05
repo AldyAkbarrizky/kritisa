@@ -13,7 +13,7 @@ import {
 } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import { getStoryBySlug } from "@/lib/storage";
-import { firstSearchValue, formatDate, formatMonth } from "@/lib/utils";
+import { firstSearchValue, formatPublishDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +49,7 @@ export default async function StoryDetailPage({
     notFound();
   }
 
-  const paragraphs = story.content.split(/\n{2,}/).filter(Boolean);
+  const paragraphs = story.content.split(/\n+/).filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,15 +93,16 @@ export default async function StoryDetailPage({
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Badge tone="primary">{story.mediaSource.name}</Badge>
-              <Badge tone="accent">{formatMonth(story.publicationMonth)}</Badge>
+              <Badge tone="accent">
+                {formatPublishDate(story.publishedAt, story.publicationMonth)}
+              </Badge>
             </div>
             <PageIntro
               title={story.title}
-              description={`${story.author || "Penulis tidak disebutkan"} · ${formatDate(story.publishedAt)}`}
+              description={`${story.author || "Penulis tidak disebutkan"} · ${formatPublishDate(story.publishedAt, story.publicationMonth)}`}
             />
             <p className="rounded-lg border-l-4 border-accent bg-accent-soft px-4 py-3 text-sm leading-6 text-foreground">
-              Sumber: {story.mediaSource.name} —{" "}
-              {formatMonth(story.publicationMonth)}
+              Sumber: {story.mediaSource.name}
               {story.sourceUrl ? (
                 <>
                   {" "}
@@ -119,7 +120,7 @@ export default async function StoryDetailPage({
             </p>
           </div>
 
-          <div className="reading-body text-[18px] leading-[1.78] text-foreground">
+          <div className="reading-body text-[18px] leading-[1.78] text-justify text-foreground">
             {paragraphs.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}

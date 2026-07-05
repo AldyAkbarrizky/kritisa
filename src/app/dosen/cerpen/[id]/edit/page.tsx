@@ -32,7 +32,11 @@ export default async function EditStoryPage({
   }
 
   return (
-    <DashboardShell title="Edit Cerpen" description="Perbarui metadata, isi, dan status cerpen.">
+    <DashboardShell
+      title="Edit Cerpen"
+      description="Perbarui metadata, isi, dan status cerpen."
+      backHref="/dosen/cerpen"
+    >
       <StoryForm
         mediaSources={mediaSources}
         story={story}

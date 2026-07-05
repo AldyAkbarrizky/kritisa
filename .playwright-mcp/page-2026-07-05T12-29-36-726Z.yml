@@ -1,0 +1,54 @@
+- generic [active] [ref=f8e1]:
+  - img
+  - img
+  - generic [ref=f8e2]:
+    - banner [ref=f8e3]:
+      - generic [ref=f8e4]:
+        - link "Kritisa Kritisa" [ref=f8e5] [cursor=pointer]:
+          - /url: /
+          - img "Kritisa" [ref=f8e6]
+          - generic [ref=f8e7]: Kritisa
+        - navigation [ref=f8e8]:
+          - link "Cerpen" [ref=f8e9] [cursor=pointer]:
+            - /url: /cerpen
+          - button "Dosen · Keluar" [ref=f8e11] [cursor=pointer]
+    - main [ref=f8e12]:
+      - generic [ref=f8e13]:
+        - paragraph [ref=f8e14]: Katalog
+        - heading "Katalog Cerpen" [level=1] [ref=f8e15]
+        - paragraph [ref=f8e16]: Telusuri cerpen berdasarkan media sumber atau bulan terbit.
+      - generic [ref=f8e18]:
+        - generic [ref=f8e19]:
+          - generic [ref=f8e20]: Cari
+          - textbox "Cari" [ref=f8e22]:
+            - /placeholder: Cari judul atau penulis cerpen...
+        - generic [ref=f8e23]:
+          - generic [ref=f8e24]: Media
+          - combobox "Media" [ref=f8e26] [cursor=pointer]:
+            - option "Semua" [selected]
+            - option "Jawa Pos"
+            - option "Kompas"
+            - option "Media Indonesia"
+            - option "Republika"
+            - option "Tempo"
+        - generic [ref=f8e27]:
+          - generic [ref=f8e28]: Bulan Terbit
+          - combobox "Bulan Terbit" [ref=f8e30] [cursor=pointer]:
+            - option "Semua" [selected]
+            - option "Oktober 2025"
+        - button "Terapkan" [ref=f8e31] [cursor=pointer]
+      - generic [ref=f8e33]:
+        - img "Kawah Gunung Dalam Dada" [ref=f8e34]
+        - generic [ref=f8e35]:
+          - generic [ref=f8e36]:
+            - generic [ref=f8e37]: Kompas
+            - generic [ref=f8e38]: Oktober 2025
+          - generic [ref=f8e39]:
+            - heading "Kawah Gunung Dalam Dada" [level=2] [ref=f8e40]
+            - paragraph [ref=f8e41]: Rahayu Ditira Jayanti
+            - paragraph [ref=f8e42]: Cerpen ini menceritakan perjuangan seorang anak yang tertekan oleh tuntutan akademis ayahnya, namun menemukan kekuatan diri dan mendamaikan hubungan keluarga melalui seni lukis.
+          - link "Baca Cerpen" [ref=f8e43] [cursor=pointer]:
+            - /url: /cerpen/kawah-gunung-dalam-dada
+  - button "Open Next.js Dev Tools" [ref=f8e49] [cursor=pointer]:
+    - img [ref=f8e50]
+  - alert [ref=f8e53]

@@ -25,7 +25,7 @@ export default async function LecturerStoriesPage({
 }) {
   if (!(await requireAuth("dosen"))) notFound();
   const query = await searchParams;
-  const stories = await listStories({ status: "all" });
+  const { stories } = await listStories({ status: "all" });
   const error = firstSearchValue(query.error);
   const saved = firstSearchValue(query.saved) === "1";
 
@@ -33,6 +33,7 @@ export default async function LecturerStoriesPage({
     <DashboardShell
       title="Kelola Cerpen"
       description="Tambah, edit, publish, unpublish, atau arsipkan cerpen."
+      backHref="/dosen/dashboard"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

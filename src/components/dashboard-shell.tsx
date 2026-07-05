@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -18,13 +19,18 @@ const navItems = [
 export function DashboardShell({
   title,
   description,
+  backHref,
+  headerRight,
   children,
 }: {
   title: string;
   description?: string;
+  backHref?: string;
+  headerRight?: ReactNode;
   children: ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,6 +123,16 @@ export function DashboardShell({
       <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted">
+          {backHref ? (
+            <button
+              type="button"
+              onClick={() => router.push(backHref)}
+              className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 py-1 text-sm font-semibold text-muted transition hover:bg-surface-muted hover:text-foreground"
+              title="Kembali"
+            >
+              ←
+            </button>
+          ) : null}
           <Link
             href="/dosen/dashboard"
             className="font-semibold text-foreground transition hover:text-primary"
@@ -127,14 +143,19 @@ export function DashboardShell({
           <span className="text-foreground">{title}</span>
         </nav>
 
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-            {title}
-          </h1>
-          {description ? (
-            <p className="max-w-2xl text-sm leading-6 text-muted">
-              {description}
-            </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+              {title}
+            </h1>
+            {description ? (
+              <p className="max-w-2xl text-sm leading-6 text-muted">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          {headerRight ? (
+            <div className="shrink-0 pt-1">{headerRight}</div>
           ) : null}
         </div>
         {children}

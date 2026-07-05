@@ -196,13 +196,11 @@ export async function createStoryAction(formData: FormData) {
   await assertStoryMedia(parsed.data.mediaSourceId, returnPath);
   const story = await createStory({
     ...parsed.data,
-    publishedAt:
-      parsed.data.publishedAt || `${parsed.data.publicationMonth}-01`,
   });
   if (!story) redirect(withQuery(returnPath, "error", "Gagal membuat cerpen."));
   revalidatePath("/cerpen");
   revalidatePath("/dosen/cerpen");
-  redirect(`/dosen/cerpen/${story.id}/edit?saved=1`);
+  redirect(`/dosen/cerpen/tambah?saved=1`);
 }
 
 export async function updateStoryAction(formData: FormData) {
@@ -214,8 +212,6 @@ export async function updateStoryAction(formData: FormData) {
   await assertStoryMedia(parsed.data.mediaSourceId, returnPath);
   const story = await updateStory(id, {
     ...parsed.data,
-    publishedAt:
-      parsed.data.publishedAt || `${parsed.data.publicationMonth}-01`,
   });
   if (!story)
     redirect(withQuery("/dosen/cerpen", "error", "Cerpen tidak ditemukan."));
@@ -257,11 +253,10 @@ export async function deleteStoryAction(formData: FormData) {
 export async function createMediaSourceAction(formData: FormData) {
   await requireAuth("dosen");
   const name = sanitizeText(formData.get("name"));
-  const slug = sanitizeText(formData.get("slug"));
   const websiteUrl = sanitizeText(formData.get("websiteUrl"));
   if (!name || name.length < 2)
     redirect("/dosen/media/tambah?error=Nama+media+wajib+diisi.");
-  await createMediaSource({ name, slug, websiteUrl });
+  await createMediaSource({ name, slug: "", websiteUrl });
   revalidatePath("/dosen/media");
   redirect("/dosen/media?saved=1");
 }
@@ -270,11 +265,10 @@ export async function updateMediaSourceAction(formData: FormData) {
   await requireAuth("dosen");
   const id = sanitizeText(formData.get("id"));
   const name = sanitizeText(formData.get("name"));
-  const slug = sanitizeText(formData.get("slug"));
   const websiteUrl = sanitizeText(formData.get("websiteUrl"));
   if (!name || name.length < 2)
     redirect(`/dosen/media/${id}/edit?error=Nama+media+wajib+diisi.`);
-  await updateMediaSource(id, { name, slug, websiteUrl });
+  await updateMediaSource(id, { name, slug: "", websiteUrl });
   revalidatePath("/dosen/media");
   redirect("/dosen/media?saved=1");
 }

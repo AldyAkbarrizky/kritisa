@@ -17,7 +17,7 @@ import {
 import { quoteFallbackMessage } from "@/lib/quote";
 import { getCurrentUser } from "@/lib/auth";
 import { getLatestAnnotation, getStoryBySlug } from "@/lib/storage";
-import { firstSearchValue, formatMonth } from "@/lib/utils";
+import { firstSearchValue, formatPublishDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +83,9 @@ export default async function CritiquePage({
         <Card className="space-y-4 border-l-4 border-l-accent bg-accent-soft">
           <div className="flex flex-wrap gap-2">
             <Badge tone="primary">{story.mediaSource.name}</Badge>
-            <Badge tone="accent">{formatMonth(story.publicationMonth)}</Badge>
+            <Badge tone="accent">
+              {formatPublishDate(story.publishedAt, story.publicationMonth)}
+            </Badge>
           </div>
           <blockquote className="text-lg font-semibold leading-8 text-foreground">
             {quote || quoteFallbackMessage}

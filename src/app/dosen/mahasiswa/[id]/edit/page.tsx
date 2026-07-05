@@ -29,6 +29,7 @@ export default async function EditMahasiswaPage({
     <DashboardShell
       title="Edit Mahasiswa"
       description="Perbarui data mahasiswa."
+      backHref="/dosen/mahasiswa"
     >
       <Card>
         <form action={updateMahasiswaAction} className="space-y-4">

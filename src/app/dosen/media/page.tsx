@@ -24,6 +24,7 @@ export default async function MediaSourcesPage({
     <DashboardShell
       title="Kelola Media Sumber"
       description="Tambah, edit, atau hapus media sumber cerpen."
+      backHref="/dosen/dashboard"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <SuccessBanner

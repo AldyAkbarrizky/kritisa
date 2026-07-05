@@ -1,0 +1,31 @@
+- generic [active] [ref=e1]:
+  - img
+  - img
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Kritisa Kritisa" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Kritisa" [ref=e6]
+          - generic [ref=e7]: Kritisa
+        - navigation [ref=e8]:
+          - link "Cerpen" [ref=e9] [cursor=pointer]:
+            - /url: /cerpen
+          - link "Masuk" [ref=e10] [cursor=pointer]:
+            - /url: /masuk
+    - main [ref=e11]:
+      - generic [ref=e12]:
+        - paragraph [ref=e13]: Masuk
+        - heading "Masuk ke Kritisa" [level=1] [ref=e14]
+        - paragraph [ref=e15]: Gunakan email dan kata sandi Anda.
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Email
+          - textbox "Email" [ref=e21]
+        - generic [ref=e22]:
+          - generic [ref=e23]: Kata Sandi
+          - textbox "Kata Sandi" [ref=e25]
+        - button "Masuk" [ref=e26] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e32] [cursor=pointer]:
+    - img [ref=e33]
+  - alert [ref=e36]

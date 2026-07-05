@@ -1,6 +1,6 @@
 import { Badge, ButtonLink, Card } from "@/components/ui";
 import type { StoryWithMedia } from "@/lib/types";
-import { formatMonth, truncate } from "@/lib/utils";
+import { formatPublishDate, truncate } from "@/lib/utils";
 
 function hashColor(text: string) {
   let hash = 0;
@@ -34,7 +34,9 @@ export function StoryCard({ story }: { story: StoryWithMedia }) {
       <div className="space-y-4 p-4 pt-0">
         <div className="flex flex-wrap gap-2">
           <Badge tone="primary">{story.mediaSource.name}</Badge>
-          <Badge tone="accent">{formatMonth(story.publicationMonth)}</Badge>
+          <Badge tone="accent">
+            {formatPublishDate(story.publishedAt, story.publicationMonth)}
+          </Badge>
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-bold leading-tight text-foreground">

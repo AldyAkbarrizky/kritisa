@@ -70,6 +70,23 @@ export function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+/** Show full date if available, fallback to month only, or fallback message. */
+export function formatPublishDate(
+  publishedAt: string,
+  publicationMonth: string,
+) {
+  // Full date explicitly set (not auto-derived from month)
+  const derived = publicationMonth ? `${publicationMonth}-01` : "";
+  if (publishedAt && publishedAt !== derived) {
+    return formatDate(publishedAt);
+  }
+  // Only month known
+  if (publicationMonth) {
+    return formatMonth(publicationMonth);
+  }
+  return "Tanggal terbit tidak diketahui";
+}
+
 export function formatDateTime(value: string) {
   if (!value) {
     return "-";

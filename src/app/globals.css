@@ -154,6 +154,7 @@
 
     .reading-body {
         font-family: var(--font-reading);
+        text-align: justify;
     }
 
     .reading-body p {
