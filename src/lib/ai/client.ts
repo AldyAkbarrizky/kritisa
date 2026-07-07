@@ -265,7 +265,7 @@ export async function extractCerpenMetadata(
       },
       { role: "user", content: buildCerpenExtractionPrompt(trimmed) },
     ],
-    { temperature: 0.2, maxTokens: 800, jsonMode: true },
+    { temperature: 0.2, maxTokens: 800 },
   );
 
   if (!result.ok) {
