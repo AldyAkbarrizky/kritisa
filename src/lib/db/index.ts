@@ -2,14 +2,32 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
-const globalPool = globalThis as unknown as { __kritisaDrizzle?: ReturnType<typeof drizzle> };
+const globalPool = globalThis as unknown as {
+  __kritisaDrizzle?: ReturnType<typeof drizzle>;
+};
+
+function ensureVerifyFull(connectionString: string): string {
+  const url = new URL(connectionString);
+  const sslmode = url.searchParams.get("sslmode");
+  if (
+    !sslmode ||
+    sslmode === "prefer" ||
+    sslmode === "require" ||
+    sslmode === "verify-ca"
+  ) {
+    url.searchParams.set("sslmode", "verify-full");
+  }
+  return url.toString();
+}
 
 function getDb() {
   if (!globalPool.__kritisaDrizzle) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
+    const rawUrl = process.env.DATABASE_URL;
+    if (!rawUrl) {
       throw new Error("DATABASE_URL belum dikonfigurasi di environment.");
     }
+
+    const connectionString = ensureVerifyFull(rawUrl);
 
     const pool = new Pool({
       connectionString,
