@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const MAX_TEXT_LENGTH = 15_000; // max chars sent to AI (fit under 12K TPM with 7K output)
+const MAX_TEXT_LENGTH = 40_000; // max chars sent to AI (fit under 30K TPM with 16K output)
 const COOLDOWN_MS = 30_000;
 
 const lastCallByUser = new Map<string, number>();
