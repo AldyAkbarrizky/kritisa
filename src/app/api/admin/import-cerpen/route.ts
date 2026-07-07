@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const MAX_TEXT_LENGTH = 40_000; // max chars sent to AI (fit under 30K TPM with 16K output)
+const MAX_TEXT_LENGTH = 20_000; // max chars sent to AI for metadata extraction (fit under 8K TPM)
 const COOLDOWN_MS = 30_000;
 
 const lastCallByUser = new Map<string, number>();
@@ -167,14 +167,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const truncated =
+  // AI hanya perlu sebagian awal teks untuk ekstrak metadata.
+  // Konten cerpen utuh diambil langsung dari mammoth yang sudah disanitasi.
+  const contentForAi =
     sanitized.length > MAX_TEXT_LENGTH
       ? sanitized.slice(0, MAX_TEXT_LENGTH)
       : sanitized;
 
   lastCallByUser.set(user.id, now);
 
-  const extraction = await extractCerpenMetadata(truncated);
+  const extraction = await extractCerpenMetadata(contentForAi, sanitized);
   if (!extraction.ok) {
     return NextResponse.json(
       { ok: false, error: { message: extraction.message } },

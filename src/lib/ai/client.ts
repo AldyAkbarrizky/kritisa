@@ -244,6 +244,7 @@ function deriveMonth(date: string): string {
 
 export async function extractCerpenMetadata(
   rawText: string,
+  storyContent: string,
 ): Promise<ExtractResult> {
   const trimmed = rawText.trim();
   if (trimmed.length < 80) {
@@ -254,6 +255,7 @@ export async function extractCerpenMetadata(
     };
   }
 
+  // AI hanya ekstrak metadata — konten cerpen dari mammoth langsung
   const result = await requestChatCompletion(
     [
       {
@@ -263,7 +265,7 @@ export async function extractCerpenMetadata(
       },
       { role: "user", content: buildCerpenExtractionPrompt(trimmed) },
     ],
-    { temperature: 0.2, maxTokens: 16000, jsonMode: true },
+    { temperature: 0.2, maxTokens: 800, jsonMode: true },
   );
 
   if (!result.ok) {
@@ -287,7 +289,6 @@ export async function extractCerpenMetadata(
 
   const obj = parsed as Record<string, unknown>;
   const title = asString(obj.title).trim();
-  const content = asString(obj.content).trim();
   const author = asString(obj.author).trim();
   const publishedAtRaw = asString(obj.publishedAt).trim();
   const publicationMonthRaw = asString(obj.publicationMonth).trim();
@@ -302,14 +303,6 @@ export async function extractCerpenMetadata(
     };
   }
 
-  if (content.length < 80) {
-    return {
-      ok: false,
-      message:
-        "AI tidak berhasil mengekstrak isi cerpen yang cukup panjang. Coba periksa file atau isi formulir secara manual.",
-    };
-  }
-
   let publishedAt = "";
   if (isISODate(publishedAtRaw)) publishedAt = publishedAtRaw;
 
@@ -319,7 +312,7 @@ export async function extractCerpenMetadata(
     publicationMonth = deriveMonth(publishedAt);
 
   const summary = clampSummary(
-    summaryRaw || content.slice(0, 180).replace(/\s+/g, " ").trim(),
+    summaryRaw || storyContent.slice(0, 180).replace(/\s+/g, " ").trim(),
   );
 
   let validSourceUrl = "";
@@ -327,7 +320,6 @@ export async function extractCerpenMetadata(
     try {
       const u = new URL(sourceUrl);
       if (u.protocol === "http:" || u.protocol === "https:") {
-        // Strip query params and hash, keep only origin + pathname
         validSourceUrl = u.origin + u.pathname;
       }
     } catch {
@@ -335,8 +327,8 @@ export async function extractCerpenMetadata(
     }
   }
 
-  // Normalize content: collapse 2+ consecutive newlines into single newline
-  const normalizedContent = content.replace(/\n{2,}/g, "\n");
+  // Konten cerpen dari mammoth, bukan dari AI
+  const normalizedContent = storyContent.replace(/\n{2,}/g, "\n");
 
   return {
     ok: true,

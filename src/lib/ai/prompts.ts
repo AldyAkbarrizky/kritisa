@@ -129,37 +129,30 @@ Skema JSON yang harus Anda hasilkan persis seperti ini:
   "publicationMonth": string | null,// Bulan terbit format YYYY-MM (diambil dari publishedAt jika ada). null jika tidak ada.
   "sourceUrl": string | null,       // URL halaman sumber cerpen. null jika tidak ada.
   "mediaName": string | null,       // Nama media/penerbit (mis. "Kompas", "Tempo", "Antara"). null jika tidak ada.
-  "summary": string,                // Ringkasan 1-2 kalimat cerpen. MAKSIMAL 180 karakter. Wajib diisi.
-  "content": string                 // ISI cerpen saja, teks polos. Buang semua yang bukan cerita.
+  "summary": string                 // Ringkasan 1-2 kalimat cerpen. MAKSIMAL 180 karakter. Wajib diisi.
 }
 
-ATURAN KONTEN (sangat penting):
-- Ambil HANYA paragraf-paragraf yang merupakan isi cerita (narasi, dialog, deskripsi).
-- BUANG dan abaikan: biografi penulis, daftar karya, catatan kaki, atribusi "Ilustrasi oleh ...", foto, caption gambar, credit foto, iklan, navigation menu, header/footer situs, komentar redaksi, sponsor, "Baca juga:", "Artikel terkait:", "Tags:", "Kategori:".
-- Jika teks berisi "Ilustrasi" / "Foto: ..." / "Dok. ..." maka BUANG baris tersebut.
+ATURAN:
+- Teks yang Anda terima HANYA sebagian awal cerpen (20K karakter pertama). Gunakan informasi yang ada untuk menulis ringkasan.
+- Jika teks berisi "Ilustrasi" / "Foto: ..." / "Dok. ..." / biografi penulis / daftar karya maka ABAIKAN baris tersebut.
 - Jika ada URL sumber di badan teks (mis. "Sumber: https://..."), ambil URL-nya untuk sourceUrl.
-- Penulisan nama orang/penulis: kapitalisasi Title Case (setiap kata awal huruf besar, kecuali kata tugas seperti "di", "dan", "atau", "yang" di tengah judul TETAP sesuai kapital aslinya dari sumber; untuk nama penulis, gunakan kapital normal).
-- Judul: jika sumber memakai HURUF KAPITAL SEMUA atau semua kecil, perbaiki menjadi kapital sesuai EYD (huruf besar di awal kata; kata tugas di tengah boleh kecil).
+- Penulisan nama orang/penulis: kapitalisasi Title Case.
+- Judul: jika sumber memakai HURUF KAPITAL SEMUA atau semua kecil, perbaiki menjadi kapital sesuai EYD.
 - Jangan menulis "JSON:", jangan menulis catatan, jangan menulis markdown. Langsung buka dengan { dan tutup dengan }.
 
 ATURAN TANGGAL (sangat penting — periksa dengan teliti):
 - Cari tanggal terbit DI DALAM teks dokumen. Sering kali tercantum di dekat judul, di bawah nama penulis, atau di header/awal dokumen.
 - Format tanggal yang umum ditemukan di dokumen Indonesia:
-  - "7 Juli 2025" atau "07 Juli 2025" → ubah ke 2025-07-07
-  - "7/7/2025" atau "07/07/2025" → ubah ke 2025-07-07
-  - "2025-07-07" → langsung pakai
-  - "Juli 2025" atau "July 2025" → ambil bulan saja untuk publicationMonth: 2025-07
-  - "Minggu, 7 Juli 2025" → ambil 2025-07-07
+  - "7 Juli 2025" atau "07 Juli 2025" -> ubah ke 2025-07-07
+  - "7/7/2025" atau "07/07/2025" -> ubah ke 2025-07-07
+  - "2025-07-07" -> langsung pakai
+  - "Juli 2025" atau "July 2025" -> ambil bulan saja untuk publicationMonth: 2025-07
+  - "Minggu, 7 Juli 2025" -> ambil 2025-07-07
 - Jika hanya ditemukan bulan dan tahun (tanpa tanggal), ISI publicationMonth saja, kosongkan publishedAt.
 - Nama bulan Bahasa Indonesia: Januari, Februari, Maret, April, Mei, Juni, Juli, Agustus, September, Oktober, November, Desember.
 - JANGAN mengarang tanggal. Hanya ambil jika benar-benar tercantum di teks.
 
-ATURAN PARAGRAF (sangat penting):
-- Di field "content", pisahkan antar paragraf dengan SATU newline saja (\\n), JANGAN pakai baris kosong (\\n\\n).
-- Contoh benar: "Paragraf satu.\\nParagraf dua.\\nParagraf tiga."
-- Contoh salah: "Paragraf satu.\\n\\nParagraf dua.\\n\\nParagraf tiga."
-
-Teks sumber:
+Teks sumber (awal cerpen):
 """
 ${rawText}
 """`;
