@@ -26,6 +26,7 @@ function isDocxMagic(bytes: Uint8Array): boolean {
 function sanitizeTextForPrompt(value: string): string {
   return value
     .replace(/\u0000/g, "")
+    .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, "") // strip control chars except tab, LF, CR
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
     .replace(/\n{3,}/g, "\n\n")

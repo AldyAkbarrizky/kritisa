@@ -76,12 +76,19 @@ async function requestChatCompletion(
     );
 
     if (!response.ok) {
+      let detail = "";
+      try {
+        const errBody = await response.text();
+        detail = errBody.slice(0, 300);
+      } catch {
+        /* ignore */
+      }
       return {
         ok: false,
         message:
           response.status === 429
             ? "AI sedang mencapai batas penggunaan free tier."
-            : "AI sedang tidak tersedia.",
+            : `AI tidak tersedia (HTTP ${response.status}${detail ? `: ${detail}` : ""})`,
       };
     }
 
@@ -98,8 +105,12 @@ async function requestChatCompletion(
     }
 
     return { ok: true, content: normalizeAiContent(content) };
-  } catch {
-    return { ok: false, message: "AI sedang tidak tersedia." };
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    return {
+      ok: false,
+      message: `AI tidak tersedia (${detail.slice(0, 200)})`,
+    };
   }
 }
 
