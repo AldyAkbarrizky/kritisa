@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { StoryForm } from "@/components/story-form";
 import { ClearFormButton } from "@/components/clear-form-button";
+import { StoryFormWithImport } from "@/components/story-form-with-import";
 import { requireAuth } from "@/lib/auth";
 import { getMediaSources } from "@/lib/storage";
 import { firstSearchValue } from "@/lib/utils";
@@ -31,7 +31,7 @@ export default async function CreateStoryPage({
       backHref="/dosen/cerpen"
       headerRight={<ClearFormButton />}
     >
-      <StoryForm
+      <StoryFormWithImport
         mediaSources={mediaSources}
         error={firstSearchValue(query.error)}
       />

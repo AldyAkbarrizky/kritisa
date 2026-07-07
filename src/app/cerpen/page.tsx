@@ -14,6 +14,7 @@ import {
   listStories,
 } from "@/lib/storage";
 import { firstSearchValue, formatMonth } from "@/lib/utils";
+import { Pagination } from "./pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -114,35 +115,11 @@ export default async function CatalogPage({
               ))}
             </div>
             {totalPages > 1 ? (
-              <nav className="flex items-center justify-center gap-2 pt-4">
-                {page > 1 ? (
-                  <a
-                    href={`/cerpen?${new URLSearchParams({ media, month, search, page: String(page - 1) }).toString()}`}
-                    className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-foreground transition hover:bg-surface-muted"
-                  >
-                    ← Sebelumnya
-                  </a>
-                ) : (
-                  <span className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-muted opacity-50">
-                    ← Sebelumnya
-                  </span>
-                )}
-                <span className="px-3 text-sm text-muted">
-                  {page} / {totalPages}
-                </span>
-                {page < totalPages ? (
-                  <a
-                    href={`/cerpen?${new URLSearchParams({ media, month, search, page: String(page + 1) }).toString()}`}
-                    className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-foreground transition hover:bg-surface-muted"
-                  >
-                    Selanjutnya →
-                  </a>
-                ) : (
-                  <span className="inline-flex min-h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-muted opacity-50">
-                    Selanjutnya →
-                  </span>
-                )}
-              </nav>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                baseParams={{ media, month, search }}
+              />
             ) : null}
           </>
         ) : (

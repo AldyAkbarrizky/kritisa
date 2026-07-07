@@ -1,5 +1,6 @@
 import {
   buildAiMessages,
+  buildCerpenExtractionPrompt,
   buildReflectionDraftPrompt,
   buildReflectionPrompt,
   buildReflectionSummaryPrompt,
@@ -39,6 +40,7 @@ function getAiConfig() {
 
 async function requestChatCompletion(
   messages: OpenAiMessage[],
+  options?: { temperature?: number; maxTokens?: number; jsonMode?: boolean },
 ): Promise<AiResult> {
   const config = getAiConfig();
 
@@ -51,6 +53,16 @@ async function requestChatCompletion(
   }
 
   try {
+    const body: Record<string, unknown> = {
+      model: config.model,
+      messages,
+      temperature: options?.temperature ?? 0.6,
+      max_tokens: options?.maxTokens ?? 900,
+    };
+    if (options?.jsonMode) {
+      body.response_format = { type: "json_object" };
+    }
+
     const response = await fetch(
       `${config.baseUrl.replace(/\/$/, "")}/chat/completions`,
       {
@@ -59,12 +71,7 @@ async function requestChatCompletion(
           Authorization: `Bearer ${config.apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: config.model,
-          messages,
-          temperature: 0.6,
-          max_tokens: 900,
-        }),
+        body: JSON.stringify(body),
       },
     );
 
@@ -180,5 +187,157 @@ export async function generateReflectionSummary(input: {
   return {
     ok: true as const,
     content: result.content.replace(/^["']|["']$/g, "").trim(),
+  };
+}
+
+export type ExtractedCerpen = {
+  title: string;
+  author: string;
+  publishedAt: string;
+  publicationMonth: string;
+  sourceUrl: string;
+  mediaName: string;
+  summary: string;
+  content: string;
+};
+
+export type ExtractResult =
+  { ok: true; data: ExtractedCerpen } | { ok: false; message: string };
+
+function asString(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v == null) return "";
+  return String(v);
+}
+
+function clampSummary(value: string): string {
+  if (value.length <= 180) return value;
+  const trimmed = value.slice(0, 180);
+  const lastSpace = trimmed.lastIndexOf(" ");
+  return (lastSpace > 100 ? trimmed.slice(0, lastSpace) : trimmed) + "...";
+}
+
+function isISODate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
+}
+
+function isYearMonth(value: string): boolean {
+  return (
+    /^\d{4}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}-01`))
+  );
+}
+
+function deriveMonth(date: string): string {
+  return date.slice(0, 7);
+}
+
+export async function extractCerpenMetadata(
+  rawText: string,
+): Promise<ExtractResult> {
+  const trimmed = rawText.trim();
+  if (trimmed.length < 80) {
+    return {
+      ok: false,
+      message:
+        "Teks dari file terlalu pendek. Pastikan file .docx berisi cerpen yang dapat dibaca.",
+    };
+  }
+
+  const result = await requestChatCompletion(
+    [
+      {
+        role: "system",
+        content:
+          "Anda adalah extractor metadata cerpen. Output HANYA JSON valid sesuai skema. Jangan menambahkan teks di luar JSON.",
+      },
+      { role: "user", content: buildCerpenExtractionPrompt(trimmed) },
+    ],
+    { temperature: 0.2, maxTokens: 2500, jsonMode: true },
+  );
+
+  if (!result.ok) {
+    return { ok: false, message: result.message };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(result.content);
+  } catch {
+    return {
+      ok: false,
+      message:
+        "AI tidak mengembalikan JSON yang valid. Coba ulangi atau isi formulir secara manual.",
+    };
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    return { ok: false, message: "Format respons AI tidak dikenali." };
+  }
+
+  const obj = parsed as Record<string, unknown>;
+  const title = asString(obj.title).trim();
+  const content = asString(obj.content).trim();
+  const author = asString(obj.author).trim();
+  const publishedAtRaw = asString(obj.publishedAt).trim();
+  const publicationMonthRaw = asString(obj.publicationMonth).trim();
+  const sourceUrl = asString(obj.sourceUrl).trim();
+  const mediaName = asString(obj.mediaName).trim();
+  const summaryRaw = asString(obj.summary).trim();
+
+  if (!title) {
+    return {
+      ok: false,
+      message: "AI tidak berhasil menemukan judul cerpen.",
+    };
+  }
+
+  if (content.length < 80) {
+    return {
+      ok: false,
+      message:
+        "AI tidak berhasil mengekstrak isi cerpen yang cukup panjang. Coba periksa file atau isi formulir secara manual.",
+    };
+  }
+
+  let publishedAt = "";
+  if (isISODate(publishedAtRaw)) publishedAt = publishedAtRaw;
+
+  let publicationMonth = "";
+  if (isYearMonth(publicationMonthRaw)) publicationMonth = publicationMonthRaw;
+  if (!publicationMonth && publishedAt)
+    publicationMonth = deriveMonth(publishedAt);
+
+  const summary = clampSummary(
+    summaryRaw || content.slice(0, 180).replace(/\s+/g, " ").trim(),
+  );
+
+  let validSourceUrl = "";
+  if (sourceUrl) {
+    try {
+      const u = new URL(sourceUrl);
+      if (u.protocol === "http:" || u.protocol === "https:") {
+        // Strip query params and hash, keep only origin + pathname
+        validSourceUrl = u.origin + u.pathname;
+      }
+    } catch {
+      validSourceUrl = "";
+    }
+  }
+
+  // Normalize content: collapse 2+ consecutive newlines into single newline
+  const normalizedContent = content.replace(/\n{2,}/g, "\n");
+
+  return {
+    ok: true,
+    data: {
+      title,
+      author,
+      publishedAt,
+      publicationMonth,
+      sourceUrl: validSourceUrl,
+      mediaName,
+      summary,
+      content: normalizedContent,
+    },
   };
 }

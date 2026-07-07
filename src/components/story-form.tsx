@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { MediaSource, StoryWithMedia } from "@/lib/types";
 import { createStoryAction, updateStoryAction } from "@/app/actions";
 import { FormSubmit } from "@/components/form-submit";
@@ -14,23 +14,51 @@ import {
   inputClassName,
   textareaClassName,
 } from "@/components/ui";
+import type { ImportPrefill } from "@/components/import-cerpen-modal";
 
 export function StoryForm({
   mediaSources,
   story,
   error,
   saved,
+  prefill,
 }: {
   mediaSources: MediaSource[];
   story?: StoryWithMedia;
   error?: string | null;
   saved?: boolean;
+  prefill?: ImportPrefill | null;
 }) {
   const action = story ? updateStoryAction : createStoryAction;
   const returnPath = story
     ? `/dosen/cerpen/${story.id}/edit`
     : "/dosen/cerpen/tambah";
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (!prefill || !formRef.current) return;
+    const form = formRef.current;
+    const setVal = (id: string, value: string) => {
+      const el = form.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+        `#${id}`,
+      );
+      if (el) {
+        el.value = value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    };
+    if (prefill.title) setVal("title", prefill.title);
+    if (prefill.author) setVal("author", prefill.author);
+    if (prefill.sourceUrl) setVal("sourceUrl", prefill.sourceUrl);
+    if (prefill.publishedAt) setVal("publishedAt", prefill.publishedAt);
+    if (prefill.publicationMonth)
+      setVal("publicationMonth", prefill.publicationMonth);
+    if (prefill.summary) setVal("summary", prefill.summary);
+    if (prefill.content) setVal("content", prefill.content);
+    if (prefill.matchedMediaSourceId) {
+      setVal("mediaSourceId", prefill.matchedMediaSourceId);
+    }
+  }, [prefill]);
 
   function handleClearContent() {
     const el = document.getElementById("content") as HTMLTextAreaElement | null;

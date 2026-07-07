@@ -1,4 +1,4 @@
-import { eq, and, desc, asc, count, gte } from "drizzle-orm";
+import { eq, and, desc, asc, count, gte, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { seedDefaultUsers } from "@/lib/auth";
 import { nowIso, makeId, slugify } from "@/lib/utils";
@@ -238,8 +238,22 @@ export async function listStories(filters?: {
 export async function listPublicationMonths(
   status: StoryStatus | "all" = "published",
 ) {
-  const { stories: s } = await listStories({ status });
-  return [...new Set(s.map((st) => st.publicationMonth))].sort().reverse();
+  const baseConds: ReturnType<typeof eq>[] = [
+    sql`${stories.publicationMonth} <> ''`,
+  ];
+  if (!status || status === "published") {
+    baseConds.push(eq(stories.status, "published"));
+  } else if (status !== "all") {
+    baseConds.push(eq(stories.status, status));
+  }
+  const rows = await db
+    .selectDistinct({ month: stories.publicationMonth })
+    .from(stories)
+    .where(and(...baseConds))
+    .orderBy(desc(stories.publicationMonth));
+  return rows
+    .map((r) => r.month)
+    .filter((m): m is string => /^\d{4}-\d{2}$/.test(m));
 }
 
 export async function getStoryBySlug(

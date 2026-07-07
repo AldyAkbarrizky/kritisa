@@ -25,11 +25,22 @@ export async function StudentHeader() {
             Cerpen
           </Link>
           {user ? (
-            <form action={logoutAction}>
-              <button className="rounded-lg px-3 py-2 text-sm font-semibold text-muted transition hover:bg-surface-muted hover:text-foreground">
-                {user.name.split(" ")[0]} · Keluar
-              </button>
-            </form>
+            <>
+              {user.role === "dosen" && (
+                <ButtonLink
+                  href="/dosen/dashboard"
+                  variant="primary"
+                  className="px-3"
+                >
+                  Dashboard
+                </ButtonLink>
+              )}
+              <form action={logoutAction}>
+                <button className="rounded-lg px-3 py-2 text-sm font-semibold text-muted transition hover:bg-surface-muted hover:text-foreground">
+                  {user.name.split(" ")[0]} · Keluar
+                </button>
+              </form>
+            </>
           ) : (
             <ButtonLink href="/masuk" variant="secondary" className="px-3">
               Masuk
