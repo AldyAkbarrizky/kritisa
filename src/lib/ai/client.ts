@@ -244,7 +244,6 @@ function deriveMonth(date: string): string {
 
 export async function extractCerpenMetadata(
   rawText: string,
-  storyContent: string,
 ): Promise<ExtractResult> {
   const trimmed = rawText.trim();
   if (trimmed.length < 80) {
@@ -255,9 +254,6 @@ export async function extractCerpenMetadata(
     };
   }
 
-  // Hanya kirim teks secukupnya ke AI untuk ekstrak metadata (hemat token)
-  const aiInput = trimmed.slice(0, 10_000);
-
   const result = await requestChatCompletion(
     [
       {
@@ -265,9 +261,9 @@ export async function extractCerpenMetadata(
         content:
           "Anda adalah extractor metadata cerpen. Output HANYA JSON valid sesuai skema. Jangan menambahkan teks di luar JSON.",
       },
-      { role: "user", content: buildCerpenExtractionPrompt(aiInput) },
+      { role: "user", content: buildCerpenExtractionPrompt(trimmed) },
     ],
-    { temperature: 0.2, maxTokens: 800, jsonMode: true },
+    { temperature: 0.2, maxTokens: 2500, jsonMode: true },
   );
 
   if (!result.ok) {
@@ -291,6 +287,7 @@ export async function extractCerpenMetadata(
 
   const obj = parsed as Record<string, unknown>;
   const title = asString(obj.title).trim();
+  const content = asString(obj.content).trim();
   const author = asString(obj.author).trim();
   const publishedAtRaw = asString(obj.publishedAt).trim();
   const publicationMonthRaw = asString(obj.publicationMonth).trim();
@@ -305,6 +302,14 @@ export async function extractCerpenMetadata(
     };
   }
 
+  if (content.length < 80) {
+    return {
+      ok: false,
+      message:
+        "AI tidak berhasil mengekstrak isi cerpen yang cukup panjang. Coba periksa file atau isi formulir secara manual.",
+    };
+  }
+
   let publishedAt = "";
   if (isISODate(publishedAtRaw)) publishedAt = publishedAtRaw;
 
@@ -314,7 +319,7 @@ export async function extractCerpenMetadata(
     publicationMonth = deriveMonth(publishedAt);
 
   const summary = clampSummary(
-    summaryRaw || storyContent.slice(0, 180).replace(/\s+/g, " ").trim(),
+    summaryRaw || content.slice(0, 180).replace(/\s+/g, " ").trim(),
   );
 
   let validSourceUrl = "";
@@ -330,8 +335,8 @@ export async function extractCerpenMetadata(
     }
   }
 
-  // Konten cerpen diambil langsung dari mammoth, bukan dari AI
-  const normalizedContent = storyContent.replace(/\n{2,}/g, "\n");
+  // Normalize content: collapse 2+ consecutive newlines into single newline
+  const normalizedContent = content.replace(/\n{2,}/g, "\n");
 
   return {
     ok: true,

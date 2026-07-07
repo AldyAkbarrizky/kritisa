@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
 
   // Potong teks mentah SEBELUM sanitasi agar regex tidak berjalan
   // di atas jutaan karakter (file .docx besar bisa lambat/timeout).
+  // MAX_TEXT_LENGTH * 2 memberi ruang cukup untuk AI membaca konteks.
   const capped =
     rawText.length > MAX_TEXT_LENGTH * 2
       ? rawText.slice(0, MAX_TEXT_LENGTH * 2)
@@ -166,13 +167,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Konten cerpen: ambil dari mammoth langsung (seluruh teks yang disanitasi).
-  // AI hanya perlu teks secukupnya (10k karakter) untuk ekstrak metadata.
-  const contentForAi = sanitized.slice(0, 10_000);
+  const truncated =
+    sanitized.length > MAX_TEXT_LENGTH
+      ? sanitized.slice(0, MAX_TEXT_LENGTH)
+      : sanitized;
 
   lastCallByUser.set(user.id, now);
 
-  const extraction = await extractCerpenMetadata(contentForAi, sanitized);
+  const extraction = await extractCerpenMetadata(truncated);
   if (!extraction.ok) {
     return NextResponse.json(
       { ok: false, error: { message: extraction.message } },
