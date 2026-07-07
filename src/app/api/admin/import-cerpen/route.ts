@@ -144,7 +144,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const sanitized = sanitizeTextForPrompt(rawText);
+  // Potong teks mentah SEBELUM sanitasi agar regex tidak berjalan
+  // di atas jutaan karakter (file .docx besar bisa lambat/timeout).
+  // MAX_TEXT_LENGTH * 2 memberi ruang cukup untuk AI membaca konteks.
+  const capped =
+    rawText.length > MAX_TEXT_LENGTH * 2
+      ? rawText.slice(0, MAX_TEXT_LENGTH * 2)
+      : rawText;
+
+  const sanitized = sanitizeTextForPrompt(capped);
   if (sanitized.length < 80) {
     return NextResponse.json(
       {
