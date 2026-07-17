@@ -44,3 +44,6 @@ next-env.d.ts
 
 # development document
 /docs
+
+# cerpen local files
+/CERPEN KRITISA/

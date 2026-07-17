@@ -13,7 +13,7 @@ function hashColor(text: string) {
 
 export function StoryCard({ story }: { story: StoryWithMedia }) {
   return (
-    <Card className="space-y-4 overflow-hidden border-l-4 border-l-accent p-0">
+    <Card className="flex h-full flex-col space-y-4 overflow-hidden border-l-4 border-l-accent p-0">
       {story.coverImageUrl ? (
         <div
           role="img"
@@ -31,7 +31,7 @@ export function StoryCard({ story }: { story: StoryWithMedia }) {
           </span>
         </div>
       )}
-      <div className="space-y-4 p-4 pt-0">
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="flex flex-wrap gap-2">
           <Badge tone="primary">{story.mediaSource.name}</Badge>
           <Badge tone="accent">
@@ -49,7 +49,7 @@ export function StoryCard({ story }: { story: StoryWithMedia }) {
             {truncate(story.summary, 180)}
           </p>
         </div>
-        <ButtonLink href={`/cerpen/${story.slug}`} fullWidth>
+        <ButtonLink href={`/cerpen/${story.slug}`} fullWidth className="mt-auto">
           Baca Cerpen
         </ButtonLink>
       </div>

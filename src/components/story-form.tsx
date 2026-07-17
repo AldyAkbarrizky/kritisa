@@ -58,6 +58,7 @@ export function StoryForm({
     if (prefill.matchedMediaSourceId) {
       setVal("mediaSourceId", prefill.matchedMediaSourceId);
     }
+    setVal("status", "published");
   }, [prefill]);
 
   function handleClearContent() {

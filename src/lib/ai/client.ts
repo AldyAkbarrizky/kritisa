@@ -26,21 +26,29 @@ function normalizeAiContent(value: string) {
 }
 
 function getAiConfig() {
-  const provider = process.env.AI_PROVIDER?.trim() || "groq";
+  const provider = process.env.AI_PROVIDER?.trim() || "deepseek";
   const apiKey = process.env.AI_API_KEY?.trim();
-  const model = process.env.AI_MODEL?.trim() || "llama-3.1-8b-instant";
+  const model = process.env.AI_MODEL?.trim() || "deepseek-v4-flash";
+  const extractionModel = process.env.AI_EXTRACTION_MODEL?.trim() || model;
   const baseUrl =
     process.env.AI_BASE_URL?.trim() ||
-    (provider === "groq"
-      ? "https://api.groq.com/openai/v1"
-      : "https://api.openai.com/v1");
+    (provider === "deepseek"
+      ? "https://api.deepseek.com"
+      : provider === "groq"
+        ? "https://api.groq.com/openai/v1"
+        : "https://api.openai.com/v1");
 
-  return { provider, apiKey, model, baseUrl };
+  return { provider, apiKey, model, extractionModel, baseUrl };
 }
 
 async function requestChatCompletion(
   messages: OpenAiMessage[],
-  options?: { temperature?: number; maxTokens?: number; jsonMode?: boolean },
+  options?: {
+    temperature?: number;
+    maxTokens?: number;
+    jsonMode?: boolean;
+    model?: string;
+  },
 ): Promise<AiResult> {
   const config = getAiConfig();
 
@@ -54,7 +62,7 @@ async function requestChatCompletion(
 
   try {
     const body: Record<string, unknown> = {
-      model: config.model,
+      model: options?.model || config.model,
       messages,
       temperature: options?.temperature ?? 0.6,
       max_tokens: options?.maxTokens ?? 900,
@@ -87,7 +95,7 @@ async function requestChatCompletion(
         ok: false,
         message:
           response.status === 429
-            ? "AI sedang mencapai batas penggunaan free tier."
+            ? "AI sedang mencapai batas penggunaan (rate limit). Coba lagi sebentar lagi."
             : `AI tidak tersedia (HTTP ${response.status}${detail ? `: ${detail}` : ""})`,
       };
     }
@@ -244,7 +252,6 @@ function deriveMonth(date: string): string {
 
 export async function extractCerpenMetadata(
   rawText: string,
-  storyContent: string,
 ): Promise<ExtractResult> {
   const trimmed = rawText.trim();
   if (trimmed.length < 80) {
@@ -255,17 +262,22 @@ export async function extractCerpenMetadata(
     };
   }
 
-  // AI hanya ekstrak metadata — konten cerpen dari mammoth langsung
+  const config = getAiConfig();
   const result = await requestChatCompletion(
     [
       {
         role: "system",
         content:
-          "Anda adalah extractor metadata cerpen. Output HANYA JSON valid sesuai skema. Jangan menambahkan teks di luar JSON.",
+          "Anda adalah extractor metadata dan konten cerpen. Output HANYA JSON valid sesuai skema. Jangan menambahkan teks di luar JSON.",
       },
       { role: "user", content: buildCerpenExtractionPrompt(trimmed) },
     ],
-    { temperature: 0.2, maxTokens: 1500 },
+    {
+      temperature: 0.2,
+      maxTokens: 40000,
+      jsonMode: true,
+      model: config.extractionModel,
+    },
   );
 
   if (!result.ok) {
@@ -289,6 +301,7 @@ export async function extractCerpenMetadata(
 
   const obj = parsed as Record<string, unknown>;
   const title = asString(obj.title).trim();
+  const content = asString(obj.content).trim();
   const author = asString(obj.author).trim();
   const publishedAtRaw = asString(obj.publishedAt).trim();
   const publicationMonthRaw = asString(obj.publicationMonth).trim();
@@ -303,6 +316,14 @@ export async function extractCerpenMetadata(
     };
   }
 
+  if (content.length < 80) {
+    return {
+      ok: false,
+      message:
+        "AI tidak berhasil mengekstrak isi cerpen yang cukup panjang. Coba periksa file atau isi formulir secara manual.",
+    };
+  }
+
   let publishedAt = "";
   if (isISODate(publishedAtRaw)) publishedAt = publishedAtRaw;
 
@@ -312,7 +333,7 @@ export async function extractCerpenMetadata(
     publicationMonth = deriveMonth(publishedAt);
 
   const summary = clampSummary(
-    summaryRaw || storyContent.slice(0, 180).replace(/\s+/g, " ").trim(),
+    summaryRaw || content.slice(0, 180).replace(/\s+/g, " ").trim(),
   );
 
   let validSourceUrl = "";
@@ -327,8 +348,7 @@ export async function extractCerpenMetadata(
     }
   }
 
-  // Konten cerpen dari mammoth, bukan dari AI
-  const normalizedContent = storyContent.replace(/\n{2,}/g, "\n");
+  const normalizedContent = content.replace(/\n{2,}/g, "\n");
 
   return {
     ok: true,

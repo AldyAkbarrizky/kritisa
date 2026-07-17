@@ -20,10 +20,11 @@ Fill `.env` before using protected lecturer features or AI:
 ADMIN_USERNAME=
 ADMIN_PASSWORD_HASH=
 ADMIN_SESSION_SECRET=
-AI_PROVIDER=groq
+AI_PROVIDER=deepseek
 AI_API_KEY=
-AI_BASE_URL=https://api.groq.com/openai/v1
-AI_MODEL=llama-3.1-8b-instant
+AI_BASE_URL=https://api.deepseek.com
+AI_MODEL=deepseek-v4-flash
+AI_EXTRACTION_MODEL=deepseek-v4-flash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const MAX_TEXT_LENGTH = 20_000; // max chars sent to AI for metadata extraction (fit under 8K TPM)
+const MAX_TEXT_LENGTH = 100_000; // safety cap on chars sent to AI (DeepSeek v4-pro handles full cerpen comfortably)
 const COOLDOWN_MS = 30_000;
 
 const lastCallByUser = new Map<string, number>();
@@ -167,16 +167,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // AI hanya perlu sebagian awal teks untuk ekstrak metadata.
-  // Konten cerpen utuh diambil langsung dari mammoth yang sudah disanitasi.
-  const contentForAi =
+  const textForAi =
     sanitized.length > MAX_TEXT_LENGTH
       ? sanitized.slice(0, MAX_TEXT_LENGTH)
       : sanitized;
 
   lastCallByUser.set(user.id, now);
 
-  const extraction = await extractCerpenMetadata(contentForAi, sanitized);
+  const extraction = await extractCerpenMetadata(textForAi);
   if (!extraction.ok) {
     return NextResponse.json(
       { ok: false, error: { message: extraction.message } },

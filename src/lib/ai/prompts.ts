@@ -119,7 +119,7 @@ Jawaban refleksi mahasiswa: ${truncate(input.reflectionAnswer, 1500)}`;
 }
 
 export function buildCerpenExtractionPrompt(rawText: string) {
-  return `Anda mengekstrak metadata cerpen dari teks mentah hasil konversi file .docx. Output HANYA JSON valid (tanpa komentar, tanpa markdown fence, tanpa teks lain).
+  return `Anda mengekstrak metadata dan isi cerpen dari teks mentah hasil konversi file .docx. Output HANYA JSON valid (tanpa komentar, tanpa markdown fence, tanpa teks lain).
 
 Skema JSON yang harus Anda hasilkan persis seperti ini:
 {
@@ -129,12 +129,14 @@ Skema JSON yang harus Anda hasilkan persis seperti ini:
   "publicationMonth": string | null,// Bulan terbit format YYYY-MM (diambil dari publishedAt jika ada). null jika tidak ada.
   "sourceUrl": string | null,       // URL halaman sumber cerpen. null jika tidak ada.
   "mediaName": string | null,       // Nama media/penerbit (mis. "Kompas", "Tempo", "Antara"). null jika tidak ada.
-  "summary": string                 // Ringkasan 1-2 kalimat cerpen. MAKSIMAL 180 karakter. Wajib diisi.
+  "summary": string,                // Ringkasan 1-2 kalimat cerpen. MAKSIMAL 180 karakter. Wajib diisi.
+  "content": string                 // ISI cerpen saja, teks polos. Buang semua yang bukan cerita.
 }
 
-ATURAN:
-- Teks yang Anda terima HANYA sebagian awal cerpen (20K karakter pertama). Gunakan informasi yang ada untuk menulis ringkasan.
-- Jika teks berisi "Ilustrasi" / "Foto: ..." / "Dok. ..." / biografi penulis / daftar karya maka ABAIKAN baris tersebut.
+ATURAN KONTEN (sangat penting):
+- Ambil HANYA paragraf-paragraf yang merupakan isi cerita (narasi, dialog, deskripsi).
+- BUANG dan abaikan: biografi penulis, daftar karya, catatan kaki, atribusi "Ilustrasi oleh ...", foto, caption gambar, credit foto, iklan, navigation menu, header/footer situs, komentar redaksi, sponsor, "Baca juga:", "Artikel terkait:", "Tags:", "Kategori:".
+- Jika teks berisi "Ilustrasi" / "Foto: ..." / "Dok. ..." maka BUANG baris tersebut.
 - Jika ada URL sumber di badan teks (mis. "Sumber: https://..."), ambil URL-nya untuk sourceUrl.
 - Penulisan nama orang/penulis: kapitalisasi Title Case.
 - Judul: jika sumber memakai HURUF KAPITAL SEMUA atau semua kecil, perbaiki menjadi kapital sesuai EYD.
@@ -152,7 +154,12 @@ ATURAN TANGGAL (sangat penting — periksa dengan teliti):
 - Nama bulan Bahasa Indonesia: Januari, Februari, Maret, April, Mei, Juni, Juli, Agustus, September, Oktober, November, Desember.
 - JANGAN mengarang tanggal. Hanya ambil jika benar-benar tercantum di teks.
 
-Teks sumber (awal cerpen):
+ATURAN PARAGRAF (sangat penting):
+- Di field "content", pisahkan antar paragraf dengan SATU newline saja (\\n), JANGAN pakai baris kosong (\\n\\n).
+- Contoh benar: "Paragraf satu.\\nParagraf dua.\\nParagraf tiga."
+- Contoh salah: "Paragraf satu.\\n\\nParagraf dua.\\n\\nParagraf tiga."
+
+Teks sumber:
 """
 ${rawText}
 """`;
