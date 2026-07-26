@@ -33,12 +33,12 @@ export function StoryCard({ story }: { story: StoryWithMedia }) {
           <div
             role="img"
             aria-label={story.title}
-            className="size-21 shrink-0 self-center rounded-md bg-cover bg-center sm:aspect-[2/1] sm:size-auto sm:w-full sm:self-auto sm:rounded-none"
+            className="w-24 min-h-28 shrink-0 rounded-md bg-cover bg-center sm:aspect-[2/1] sm:min-h-0 sm:w-full sm:rounded-none"
             style={{ backgroundImage: `url("${cover}")` }}
           />
         ) : (
           <div
-            className="flex size-21 shrink-0 self-center items-center justify-center rounded-md sm:aspect-[2/1] sm:size-auto sm:w-full sm:self-auto sm:rounded-none"
+            className="flex w-24 min-h-28 shrink-0 items-center justify-center rounded-md sm:aspect-[2/1] sm:min-h-0 sm:w-full sm:rounded-none"
             style={{ backgroundColor: hashColor(story.title) }}
           >
             <span className="font-serif text-2xl font-bold leading-none text-primary/30 sm:text-5xl">
