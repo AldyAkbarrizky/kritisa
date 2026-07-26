@@ -51,6 +51,9 @@ export default async function CritiquePage({
 
   const error = firstSearchValue(query.error);
   const saved = firstSearchValue(query.saved) === "1";
+  const quoteText = quote || quoteFallbackMessage;
+  // ~400 karakter ≈ 6 baris pada kolom 328px; di bawah itu tak perlu dilipat.
+  const isLongQuote = quoteText.length > 400;
   const latestAnnotation = user
     ? await getLatestAnnotation(user.id, story.id)
     : null;
@@ -80,16 +83,43 @@ export default async function CritiquePage({
           />
         ) : null}
 
-        <Card className="space-y-4 border-l-4 border-l-accent bg-accent-soft">
-          <div className="flex flex-wrap gap-2">
+        <Card className="space-y-3 border-l-4 border-l-accent bg-accent-soft">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge tone="primary">{story.mediaSource.name}</Badge>
-            <Badge tone="accent">
+            <span className="text-xs text-muted sm:hidden">
               {formatPublishDate(story.publishedAt, story.publicationMonth)}
-            </Badge>
+            </span>
+            <span className="hidden sm:inline">
+              <Badge tone="accent">
+                {formatPublishDate(story.publishedAt, story.publicationMonth)}
+              </Badge>
+            </span>
           </div>
-          <blockquote className="text-lg font-semibold leading-8 text-foreground">
-            {quote || quoteFallbackMessage}
-          </blockquote>
+          {/* Kutipan panjang dilipat agar form kritik tetap terjangkau tanpa
+              menggulir jauh. `<details>` dipilih supaya tetap jalan tanpa JS;
+              seluruh isinya ditaruh di <summary> agar labelnya bisa menutup
+              kembali — elemen di luar <summary> tak bisa men-toggle. */}
+          {isLongQuote ? (
+            <details className="group">
+              <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                <blockquote className="line-clamp-6 font-serif text-base leading-7 text-foreground group-open:line-clamp-none">
+                  {quoteText}
+                </blockquote>
+                <span className="mt-2 inline-block text-sm font-semibold text-accent-strong underline underline-offset-4">
+                  <span className="group-open:hidden">
+                    Baca kutipan selengkapnya
+                  </span>
+                  <span className="hidden group-open:inline">
+                    Ringkaskan kutipan
+                  </span>
+                </span>
+              </summary>
+            </details>
+          ) : (
+            <blockquote className="font-serif text-base leading-7 text-foreground">
+              {quoteText}
+            </blockquote>
+          )}
         </Card>
 
         <Card>

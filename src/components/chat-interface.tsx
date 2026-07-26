@@ -167,68 +167,48 @@ export function ChatInterface({
       </div>
 
       {/* Chat Area */}
-      <div className="max-h-[60svh] min-h-[34svh] space-y-4 overflow-y-auto overscroll-contain rounded-2xl bg-surface-muted/60 p-3 sm:max-h-[480px] sm:min-h-[320px] sm:p-5">
+      {/* Latar putih polos: teks AI kini tanpa bubble, jadi ia butuh permukaan
+          baca yang tenang — bukan tint abu di balik teks lebar penuh. */}
+      <div className="max-h-[60svh] min-h-[34svh] space-y-5 overflow-y-auto overscroll-contain rounded-2xl border border-border bg-surface p-4 sm:max-h-[480px] sm:min-h-[320px] sm:p-5">
         {messages.length === 0 ? (
           <div className="flex min-h-28 items-center justify-center px-4 text-center text-sm leading-6 text-muted sm:min-h-48">
             Belum ada pesan. Pilih pertanyaan pemantik atau tulis pertanyaan
             Anda sendiri.
           </div>
         ) : (
-          messages.map((m, i) => (
-            <div
-              key={`${m.role}-${i}`}
-              className={`flex gap-2.5 ${m.role === "student" ? "flex-row-reverse" : "flex-row"}`}
-            >
-              {/* Avatar */}
-              <div
-                className={`mt-1 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold sm:size-8 ${
-                  m.role === "student"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-accent text-white"
-                }`}
-              >
-                {m.role === "student" ? "A" : "K"}
+          messages.map((m, i) =>
+            m.role === "student" ? (
+              // Pesan mahasiswa: pil rata kanan. Pendek, jadi tak apa dibatasi.
+              <div key={`${m.role}-${i}`} className="flex justify-end">
+                <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5 text-sm leading-6 text-primary-foreground">
+                  {m.content}
+                </p>
               </div>
-
-              {/* Bubble */}
-              <div className="flex max-w-[85%] flex-col gap-0.5 sm:max-w-[80%]">
-                <div
-                  className={`rounded-2xl px-3.5 py-2.5 text-sm leading-6 sm:px-4 sm:py-3 ${
-                    m.role === "student"
-                      ? "rounded-tr-md bg-primary text-primary-foreground"
-                      : "rounded-tl-md bg-surface border border-border text-foreground shadow-sm"
-                  }`}
-                >
-                  {m.role === "assistant" ? (
-                    <div className="kritisa-chat-markdown">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {m.content}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="whitespace-pre-wrap">{m.content}</p>
-                  )}
+            ) : (
+              // Jawaban AI: lebar penuh, tanpa bubble & avatar. Avatar + gap +
+              // max-w-[85%] + padding bubble menyisakan hanya ~203px untuk teks
+              // di layar 360px, sehingga daftar berpoin patah tiap 3-4 kata.
+              <div key={`${m.role}-${i}`} className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-accent-strong">
+                  Kritisa AI · {formatChatTime(m.at)}
+                </p>
+                <div className="kritisa-chat-markdown text-foreground">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {m.content}
+                  </ReactMarkdown>
                 </div>
-                <span
-                  className={`text-[11px] text-muted ${
-                    m.role === "student" ? "text-right" : "text-left"
-                  }`}
-                >
-                  {m.role === "student" ? "Anda" : "Kritisa AI"} ·{" "}
-                  {formatChatTime(m.at)}
-                </span>
               </div>
-            </div>
-          ))
+            ),
+          )
         )}
 
         {/* Typing indicator */}
         {isSending && (
-          <div className="flex gap-2.5">
-            <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-white sm:size-8">
-              K
-            </div>
-            <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-border bg-surface px-3.5 py-2.5 shadow-sm sm:max-w-[80%] sm:px-4 sm:py-3">
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-accent-strong">
+              Kritisa AI
+            </p>
+            <div>
               <div className="flex items-center gap-1.5 text-sm text-muted">
                 <span className="inline-block size-2 animate-bounce rounded-full bg-accent [animation-delay:0ms]" />
                 <span className="inline-block size-2 animate-bounce rounded-full bg-accent [animation-delay:150ms]" />
