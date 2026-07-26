@@ -52,7 +52,7 @@ export default async function StoryDetailPage({
   const paragraphs = story.content.split(/\n+/).filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <StudentHeader />
       <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
         <ErrorBanner message={error} />
@@ -67,7 +67,7 @@ export default async function StoryDetailPage({
             />
           ) : (
             <div className="flex aspect-[3/1] w-full items-center justify-center bg-primary/8">
-              <span className="font-serif text-6xl font-bold leading-none text-primary/25">
+              <span className="font-serif text-4xl font-bold leading-none text-primary/25 sm:text-6xl">
                 {story.title.charAt(0)}
               </span>
             </div>
@@ -120,7 +120,10 @@ export default async function StoryDetailPage({
             </p>
           </div>
 
-          <div className="reading-body text-[18px] leading-[1.78] text-justify text-foreground">
+          {/* Perataan diatur `.reading-body` di globals.css (kiri di mobile,
+              justify + hyphens dari sm). Jangan tambahkan `text-justify`
+              di sini — utility akan menimpa aturan responsif itu. */}
+          <div className="reading-body text-base leading-[1.75] text-foreground sm:text-[18px] sm:leading-[1.78]">
             {paragraphs.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}

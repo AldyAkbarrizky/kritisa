@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { StudentHeader } from "@/components/student-header";
 import { StoryCard } from "@/components/story-card";
 import {
+  Button,
   ButtonLink,
   EmptyState,
   Field,
@@ -48,9 +49,9 @@ export default async function CatalogPage({
   const totalPages = Math.ceil(total / perPage);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <StudentHeader />
-      <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-12">
         <PageIntro
           eyebrow="Katalog"
           title="Katalog Cerpen"
@@ -61,16 +62,20 @@ export default async function CatalogPage({
           className="rounded-lg border border-border bg-surface p-4 shadow-sm"
           action="/cerpen"
         >
-          <div className="grid gap-4 md:grid-cols-[1fr_180px_180px_auto] md:items-end">
-            <Field label="Cari" name="search">
-              <input
-                id="search"
-                name="search"
-                className={inputClassName}
-                defaultValue={search}
-                placeholder="Cari judul atau penulis cerpen..."
-              />
-            </Field>
+          {/* Media & Bulan berdampingan di mobile: kalau ditumpuk, filter
+              memakan ~368px dan daftar cerpen terdorong ke bawah lipatan. */}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-[1fr_180px_180px_auto] md:items-end">
+            <div className="col-span-2 md:col-span-1">
+              <Field label="Cari" name="search">
+                <input
+                  id="search"
+                  name="search"
+                  className={inputClassName}
+                  defaultValue={search}
+                  placeholder="Cari judul atau penulis..."
+                />
+              </Field>
+            </div>
             <Field label="Media" name="media">
               <select
                 id="media"
@@ -101,9 +106,11 @@ export default async function CatalogPage({
                 ))}
               </select>
             </Field>
-            <button className="min-h-11 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
-              Terapkan
-            </button>
+            <div className="col-span-2 md:col-span-1">
+              <Button type="submit" fullWidth className="md:w-auto">
+                Terapkan
+              </Button>
+            </div>
           </div>
         </form>
 

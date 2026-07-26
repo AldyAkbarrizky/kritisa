@@ -28,9 +28,9 @@ export default async function LoginPage({
   const error = firstSearchValue(query.error);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <StudentHeader />
-      <main className="mx-auto w-full max-w-md space-y-6 px-4 py-12">
+      <main className="mx-auto w-full max-w-md space-y-6 px-4 py-8 sm:py-12">
         <PageIntro
           eyebrow="Masuk"
           title="Masuk ke Kritisa"

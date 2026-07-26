@@ -162,6 +162,10 @@ export const selectClassName =
 export const textareaClassName =
   "min-h-36 w-full rounded-lg border border-border bg-surface px-3 py-3 text-base leading-7 text-foreground shadow-sm outline-none transition placeholder:text-muted/80 focus:border-primary focus:ring-4 focus:ring-primary/10";
 
+// Composer chat: mulai satu baris lalu tumbuh mengikuti isi, bukan kotak esai.
+export const chatInputClassName =
+  "max-h-32 min-h-11 w-full resize-none rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-base leading-6 text-foreground shadow-sm outline-none transition placeholder:text-muted/80 focus:border-primary focus:ring-4 focus:ring-primary/10";
+
 export function EmptyState({
   title,
   description,
@@ -230,11 +234,13 @@ export function PageIntro({
           {eyebrow}
         </p>
       ) : null}
-      <h1 className="break-words text-[2rem] font-bold leading-[1.04] text-foreground sm:text-5xl">
+      <h1 className="break-words text-[1.75rem] font-bold leading-[1.15] text-foreground sm:text-4xl lg:text-5xl">
         {title}
       </h1>
       {description ? (
-        <p className="text-base leading-7 text-muted">{description}</p>
+        <p className="text-sm leading-6 text-muted sm:text-base sm:leading-7">
+          {description}
+        </p>
       ) : null}
     </div>
   );

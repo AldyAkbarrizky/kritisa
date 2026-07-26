@@ -26,26 +26,26 @@ export function StoryCard({ story }: { story: StoryWithMedia }) {
           className="flex aspect-[2/1] w-full items-center justify-center"
           style={{ backgroundColor: hashColor(story.title) }}
         >
-          <span className="font-serif text-5xl font-bold leading-none text-primary/30">
+          <span className="font-serif text-3xl font-bold leading-none text-primary/30 sm:text-5xl">
             {story.title.charAt(0)}
           </span>
         </div>
       )}
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      <div className="flex flex-1 flex-col gap-3 p-4 pt-0">
         <div className="flex flex-wrap gap-2">
           <Badge tone="primary">{story.mediaSource.name}</Badge>
           <Badge tone="accent">
             {formatPublishDate(story.publishedAt, story.publicationMonth)}
           </Badge>
         </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold leading-tight text-foreground">
+        <div className="space-y-1.5">
+          <h2 className="text-lg font-bold leading-snug text-foreground sm:text-xl">
             {story.title}
           </h2>
-          <p className="text-sm font-medium text-muted">
+          <p className="text-xs font-medium text-muted sm:text-sm">
             {story.author || "Penulis tidak disebutkan"}
           </p>
-          <p className="text-sm leading-6 text-muted">
+          <p className="line-clamp-3 text-sm leading-6 text-muted">
             {truncate(story.summary, 180)}
           </p>
         </div>

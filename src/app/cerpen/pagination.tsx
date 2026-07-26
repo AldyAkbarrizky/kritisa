@@ -73,7 +73,7 @@ export function Pagination({
 }) {
   const items = buildPageList(page, totalPages);
   const baseClass =
-    "inline-flex min-h-10 min-w-10 items-center justify-center rounded-md border px-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+    "inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border px-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
   const activeClass = "border-primary bg-primary text-primary-foreground";
   const idleClass =
     "border-border bg-surface text-foreground hover:bg-surface-muted";
@@ -83,7 +83,7 @@ export function Pagination({
   return (
     <nav
       aria-label="Navigasi halaman"
-      className="flex flex-wrap items-center justify-center gap-1.5 pt-4"
+      className="flex flex-wrap items-center justify-center gap-2 pt-4"
     >
       {page > 1 ? (
         <a
@@ -106,7 +106,7 @@ export function Pagination({
           return (
             <span
               key={`${item.id}-${idx}`}
-              className="inline-flex min-h-10 min-w-10 items-center justify-center text-sm text-muted"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center text-sm text-muted"
               aria-hidden
             >
               …

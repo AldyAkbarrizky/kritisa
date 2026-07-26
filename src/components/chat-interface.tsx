@@ -3,9 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Button, ErrorBanner, textareaClassName } from "@/components/ui";
+import { Button, ErrorBanner, chatInputClassName } from "@/components/ui";
 
-type ChatMessage = { role: "student" | "assistant"; content: string };
+type ChatMessage = {
+  role: "student" | "assistant";
+  content: string;
+  /** Dicatat saat pesan dibuat. Tanpa ini setiap render menampilkan jam kini. */
+  at: number;
+};
 
 const QUOTA_MAX = 8;
 
@@ -19,9 +24,9 @@ const starterPrompts = [
   "Bimbing saya berpikir lebih kritis.",
 ];
 
-function formatChatTime() {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, "0")}.${String(now.getMinutes()).padStart(2, "0")}`;
+function formatChatTime(at: number) {
+  const d = new Date(at);
+  return `${String(d.getHours()).padStart(2, "0")}.${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 export function ChatInterface({
@@ -44,9 +49,21 @@ export function ChatInterface({
   const [isSending, setIsSending] = useState(false);
   const [quotaUsed, setQuotaUsed] = useState(initialQuotaUsed ?? 0);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Composer mulai satu baris dan tumbuh sampai max-h-32 (128px), lalu
+  // menyusut lagi setelah pesan terkirim atau saat chip pemantik dipilih.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }, [input]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // `block: "nearest"` menahan scroll di dalam kotak chat. Tanpa itu
+    // seluruh halaman ikut melompat setiap kali ada pesan baru.
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, isSending]);
 
   const remaining = Math.max(0, quotaMax - quotaUsed);
@@ -63,7 +80,10 @@ export function ChatInterface({
     setError("");
     setInput("");
     setIsSending(true);
-    setMessages((c) => [...c, { role: "student", content: trimmed }]);
+    setMessages((c) => [
+      ...c,
+      { role: "student", content: trimmed, at: Date.now() },
+    ]);
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
@@ -88,7 +108,10 @@ export function ChatInterface({
       }
       setConversationId(p.data.conversationId);
       setQuotaUsed(p.data.quotaUsed);
-      setMessages((c) => [...c, { role: "assistant", content: p.data.reply }]);
+      setMessages((c) => [
+        ...c,
+        { role: "assistant", content: p.data.reply, at: Date.now() },
+      ]);
     } catch {
       setError(
         "AI sedang tidak tersedia. Anda tetap bisa melanjutkan anotasi dan refleksi secara manual.",
@@ -99,18 +122,13 @@ export function ChatInterface({
   }
 
   return (
-    <div className="space-y-5">
-      {/* Quota Progress Bar */}
-      <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-muted uppercase tracking-wide">
-            Kuota Diskusi Hari Ini
-          </span>
-          <span className="text-xs font-bold text-foreground">
-            {quotaUsed}/{quotaMax}
-          </span>
-        </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-surface-muted">
+    <div className="space-y-4">
+      {/* Kuota — satu baris; detailnya baru muncul saat sisa menipis. */}
+      <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 shadow-sm">
+        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted">
+          Kuota
+        </span>
+        <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-surface-muted">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               remaining === 0
@@ -122,20 +140,25 @@ export function ChatInterface({
             style={{ width: `${Math.min(100, (quotaUsed / quotaMax) * 100)}%` }}
           />
         </div>
-        <p className="mt-2 text-xs text-muted">
+        <span className="shrink-0 text-xs font-bold tabular-nums text-foreground">
+          {quotaUsed}/{quotaMax}
+        </span>
+      </div>
+      {remaining <= 2 ? (
+        <p className="text-xs text-muted">
           {remaining === 0
             ? "Kuota habis. Reset pukul 00:00."
             : `Sisa ${remaining} pesan lagi hari ini.`}
         </p>
-      </div>
+      ) : null}
 
-      {/* Quick Prompts */}
-      <div className="flex flex-wrap gap-2">
+      {/* Pemantik — rail geser di mobile supaya tidak menumpuk 7 baris. */}
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden">
         {starterPrompts.map((p) => (
           <button
             key={p}
             type="button"
-            className="cursor-pointer min-h-11 rounded-full border border-border bg-surface px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:bg-surface-muted hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="min-h-9 shrink-0 cursor-pointer whitespace-nowrap rounded-full border border-border bg-surface px-3 text-xs font-semibold text-foreground transition hover:border-accent hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-11 sm:whitespace-normal sm:text-sm"
             onClick={() => setInput(p)}
           >
             {p}
@@ -144,9 +167,9 @@ export function ChatInterface({
       </div>
 
       {/* Chat Area */}
-      <div className="min-h-[320px] max-h-[480px] overflow-y-auto space-y-4 rounded-2xl bg-surface-muted/60 p-4 sm:p-5">
+      <div className="max-h-[60svh] min-h-[34svh] space-y-4 overflow-y-auto overscroll-contain rounded-2xl bg-surface-muted/60 p-3 sm:max-h-[480px] sm:min-h-[320px] sm:p-5">
         {messages.length === 0 ? (
-          <div className="flex min-h-48 items-center justify-center text-center text-sm leading-6 text-muted">
+          <div className="flex min-h-28 items-center justify-center px-4 text-center text-sm leading-6 text-muted sm:min-h-48">
             Belum ada pesan. Pilih pertanyaan pemantik atau tulis pertanyaan
             Anda sendiri.
           </div>
@@ -158,7 +181,7 @@ export function ChatInterface({
             >
               {/* Avatar */}
               <div
-                className={`mt-1 flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                className={`mt-1 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold sm:size-8 ${
                   m.role === "student"
                     ? "bg-primary text-primary-foreground"
                     : "bg-accent text-white"
@@ -168,9 +191,9 @@ export function ChatInterface({
               </div>
 
               {/* Bubble */}
-              <div className="flex flex-col gap-0.5 max-w-[80%]">
+              <div className="flex max-w-[85%] flex-col gap-0.5 sm:max-w-[80%]">
                 <div
-                  className={`rounded-2xl px-4 py-3 text-sm leading-6 ${
+                  className={`rounded-2xl px-3.5 py-2.5 text-sm leading-6 sm:px-4 sm:py-3 ${
                     m.role === "student"
                       ? "rounded-tr-md bg-primary text-primary-foreground"
                       : "rounded-tl-md bg-surface border border-border text-foreground shadow-sm"
@@ -187,12 +210,12 @@ export function ChatInterface({
                   )}
                 </div>
                 <span
-                  className={`text-[10px] text-muted ${
+                  className={`text-[11px] text-muted ${
                     m.role === "student" ? "text-right" : "text-left"
                   }`}
                 >
                   {m.role === "student" ? "Anda" : "Kritisa AI"} ·{" "}
-                  {formatChatTime()}
+                  {formatChatTime(m.at)}
                 </span>
               </div>
             </div>
@@ -202,10 +225,10 @@ export function ChatInterface({
         {/* Typing indicator */}
         {isSending && (
           <div className="flex gap-2.5">
-            <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
+            <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-white sm:size-8">
               K
             </div>
-            <div className="max-w-[80%] rounded-2xl rounded-tl-md border border-border bg-surface px-4 py-3 shadow-sm">
+            <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-border bg-surface px-3.5 py-2.5 shadow-sm sm:max-w-[80%] sm:px-4 sm:py-3">
               <div className="flex items-center gap-1.5 text-sm text-muted">
                 <span className="inline-block size-2 animate-bounce rounded-full bg-accent [animation-delay:0ms]" />
                 <span className="inline-block size-2 animate-bounce rounded-full bg-accent [animation-delay:150ms]" />
@@ -222,23 +245,25 @@ export function ChatInterface({
 
       {/* Input */}
       <form
-        className="space-y-3"
+        className="flex items-end gap-2"
         onSubmit={(e) => {
           e.preventDefault();
           void sendMessage(input);
         }}
       >
         <textarea
-          className={textareaClassName}
+          ref={inputRef}
+          className={chatInputClassName}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Tulis pertanyaan atau ide analisis Anda..."
+          placeholder="Tulis pertanyaan Anda..."
+          aria-label="Pertanyaan untuk Kritisa AI"
           maxLength={1000}
-          rows={3}
+          rows={1}
         />
         <Button
           type="submit"
-          fullWidth
+          className="shrink-0"
           disabled={isSending || input.trim().length < 2 || remaining <= 0}
         >
           {isSending ? "Mengirim..." : "Kirim"}

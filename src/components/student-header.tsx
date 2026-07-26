@@ -12,15 +12,17 @@ export async function StudentHeader() {
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="flex min-h-11 items-center gap-2 font-bold text-foreground"
+          className="flex min-h-11 min-w-0 items-center gap-2 font-bold text-foreground"
         >
           <BrandIcon />
-          <span className="font-serif text-xl tracking-normal">Kritisa</span>
+          <span className="truncate font-serif text-lg tracking-normal sm:text-xl">
+            Kritisa
+          </span>
         </Link>
-        <nav className="flex items-center gap-1">
+        <nav className="flex shrink-0 items-center gap-1">
           <Link
             href="/cerpen"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-muted transition hover:bg-surface-muted hover:text-foreground"
+            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Cerpen
           </Link>
@@ -36,8 +38,13 @@ export async function StudentHeader() {
                 </ButtonLink>
               )}
               <form action={logoutAction}>
-                <button className="rounded-lg px-3 py-2 text-sm font-semibold text-muted transition hover:bg-surface-muted hover:text-foreground">
-                  {user.name.split(" ")[0]} · Keluar
+                <button className="inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-3 text-sm font-semibold text-muted transition hover:bg-surface-muted hover:text-foreground">
+                  {/* Nama disembunyikan di mobile: "Muhammad · Keluar" saja
+                      sudah mendorong nav melewati lebar layar 360px. */}
+                  <span className="hidden sm:inline">
+                    {user.name.split(" ")[0]} ·{" "}
+                  </span>
+                  Keluar
                 </button>
               </form>
             </>

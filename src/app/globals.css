@@ -152,29 +152,55 @@
         color: #ffffff;
     }
 
+    /* Mobile: rata kiri. Kolom 328px hanya memuat ~40 karakter — terlalu
+       sempit untuk justify, celah antar-kata melebar jadi "sungai" putih. */
     .reading-body {
         font-family: var(--font-reading);
-        text-align: justify;
+        text-align: left;
     }
 
     .reading-body p {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         overflow-wrap: break-word;
     }
 
-    .reading-body p:first-child::first-letter {
-        float: left;
-        margin: 0.1rem 0.45rem 0 0;
-        color: var(--primary);
-        font-family: var(--font-editorial);
-        font-size: 3.4rem;
-        line-height: 0.82;
+    @media (min-width: 40rem) {
+        .reading-body {
+            text-align: justify;
+            -webkit-hyphens: auto;
+            hyphens: auto;
+        }
+
+        .reading-body p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Drop cap butuh kolom lebar: di 328px ia memakan 19% lebar dan
+           merusak baris pertama. Hanya tampil dari sm ke atas. */
+        .reading-body p:first-child::first-letter {
+            float: left;
+            margin: 0.1rem 0.45rem 0 0;
+            color: var(--primary);
+            font-family: var(--font-editorial);
+            font-size: 3.4rem;
+            line-height: 0.82;
+        }
     }
 
+    /* Bubble chat hanya selebar ~200px di mobile, jadi ukuran teksnya
+       disamakan dengan bubble mahasiswa (text-sm) agar tidak terlihat
+       lebih besar sebelah. */
     .kritisa-chat-markdown {
         overflow-wrap: anywhere;
-        font-size: 0.95rem;
-        line-height: 1.75;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    @media (min-width: 40rem) {
+        .kritisa-chat-markdown {
+            font-size: 0.95rem;
+            line-height: 1.75;
+        }
     }
 
     .kritisa-chat-markdown > * + * {
@@ -192,7 +218,9 @@
         margin-top: 1rem;
         color: var(--foreground);
         font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
-        font-size: 0.98rem;
+        /* `em`, bukan `rem`: heading harus ikut ukuran kontainernya. Dengan
+           `0.98rem` heading justru lebih kecil dari paragrafnya sendiri. */
+        font-size: 1.05em;
         font-weight: 700;
         letter-spacing: 0;
         line-height: 1.45;

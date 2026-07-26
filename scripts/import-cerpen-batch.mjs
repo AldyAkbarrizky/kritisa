@@ -68,6 +68,11 @@ const MONTHS = {
   // Sebagian file (Republika) memakai nama bulan Inggris.
   january: 1, february: 2, march: 3, may: 5, june: 6, july: 7,
   august: 8, october: 10, december: 12,
+  // Singkatan (Media Indonesia: "Min, 31 Mar 2024"). WAJIB di urutan terakhir:
+  // MONTHS_RE dipakai sebagai alternasi regex, dan alternasi JS memilih yang
+  // paling kiri — kalau "mar" ditaruh sebelum "maret", "Maret" ikut terpotong.
+  jan: 1, feb: 2, mar: 3, apr: 4, jun: 6, jul: 7,
+  agu: 8, ags: 8, agt: 8, sept: 9, sep: 9, okt: 10, nov: 11, des: 12,
 };
 const MONTHS_RE = Object.keys(MONTHS).join("|");
 // Nama folder -> nama media kanonik di DB.
@@ -76,6 +81,7 @@ const MEDIA_CANON = {
   KOMPAS: "Kompas",
   REPUBLIKA: "Republika",
   TEMPO: "Tempo",
+  "MEDIA INDONESIA": "Media Indonesia",
 };
 // Penanda kuat bio penulis — nyaris tak pernah muncul di narasi cerita.
 const BIO_STRONG =
@@ -152,19 +158,24 @@ function parseNumericDate(text) {
 
 // Judul dari nama file: buang nomor urut, nama media, tanggal, pemisah.
 function parseTitleFromFile(fileBase, mediaCanon) {
-  let t = fileBase.replace(/\.docx$/i, "");
+  let t = fileBase.replace(/\.\s*docx$/i, "");
   t = t.replace(/^\s*\d+\s*[.)]\s*/, ""); // "10. " / "11) "
   // buang nama media (varian folder + kanonik)
   t = t.replace(new RegExp(`^\\s*${mediaCanon}\\b[\\s,–-]*`, "i"), "");
   t = t.replace(/^\s*(JAWA POS|KOMPAS|REPUBLIKA|TEMPO)\b[\s,–-]*/i, "");
   // buang tanggal (indo / numerik dalam kurung)
-  t = t.replace(new RegExp(`\\(?\\b\\d{1,2}\\s+(${MONTHS_RE})\\s+\\d{4}\\)?`, "i"), "");
+  // `\s*,?\s*` sebelum tahun: sebagian nama file memakai "25 Februari, 2024".
+  t = t.replace(new RegExp(`\\(?\\b\\d{1,2}\\s+(${MONTHS_RE})\\s*,?\\s*\\d{4}\\)?`, "i"), "");
   t = t.replace(/\(?\b\d{1,2}[-/.]\d{1,2}[-/.]\d{4,5}\)?/, "");
   // buang pemisah sisa di depan
   t = t.replace(/^[\s–—\-_,:|]+/, "");
   t = collapse(t.replace(/[_]+/g, " "));
   if (mediaCanon === "Tempo") t = t.replace(/^cerpen\s+/i, "");
-  return t;
+  // Titik tunggal di ekor berasal dari nama file ("...Santai..docx"), bukan
+  // bagian judul. Elipsis (`...`) sengaja dipertahankan.
+  t = t.replace(/(?<!\.)\.$/, "");
+  // Judul nama file kadang seluruhnya kapital ("PROTES") — samakan gayanya.
+  return toTitleCaseIfCaps(t);
 }
 
 // Pisahkan blok header dari isi. Header kontigu di atas: media-tanggal, url,
@@ -177,7 +188,8 @@ function splitHeaderBody(lines, titleHint) {
   for (let i = 0; i < lines.length && i < 15; i++) {
     const l = lines[i];
     if (l === "") { bodyStart = i + 1; continue; }
-    const om = l.match(/^oleh\s*:?\s*(.+)$/i);
+    // "Oleh: X" (Kompas/Republika) maupun "Penulis: X" (Media Indonesia).
+    const om = l.match(/^\s*(?:oleh|penulis)\s*:?\s*(.+)$/i);
     if (om) { author = collapse(om[1].replace(/^[:\s]+/, "")); bodyStart = i + 1; continue; }
     // Baris judul (cocok dengan judul dari nama file) -> lewati sebagai judul,
     // JANGAN dijadikan penulis (penting untuk Tempo yang judulnya mixed-case).
@@ -221,7 +233,11 @@ function splitHeaderBody(lines, titleHint) {
 
 // ── Pembersihan isi ───────────────────────────────────────────────────────────
 function isIllustration(line) {
-  return /^(ilustrasi|ilustrator|foto|dok\.|sumber|caption|editor|infografi|grafis)\b/i.test(line);
+  return (
+    /^(ilustrasi|ilustrator|foto|dok\.|sumber|caption|editor|infografi|grafis)\b/i.test(line) ||
+    // Kredit ilustrator Media Indonesia: "MI/Ebet", "MI/Seno", "IM/Tiyok".
+    /^(mi|im)\s*\/\s*[\w'’.-]+$/i.test(line.trim())
+  );
 }
 function isCapsTitle(line) {
   const letters = line.replace(/[^A-Za-z]/g, "");
@@ -510,7 +526,9 @@ function listDocx(dir) {
     const canon = MEDIA_CANON[folder.toUpperCase()] || toTitleCaseIfCaps(folder);
     const files = fs
       .readdirSync(full)
-      .filter((f) => /\.docx$/i.test(f) && !f.startsWith("~$"))
+      // `\.\s*docx$`, bukan `\.docx$`: sebagian nama file punya spasi sebelum
+      // ekstensi (mis. "... Tanah Perawan. docx") dan akan terlewat diam-diam.
+      .filter((f) => /\.\s*docx$/i.test(f) && !f.startsWith("~$"))
       .sort()
       .slice(0, LIMIT);
     for (const f of files) out.push({ media: canon, folder, file: f, fullPath: path.join(full, f) });
@@ -597,7 +615,10 @@ async function main() {
 
       // Lewati file yang jelas BUKAN cerpen (dokumen pribadi/template yang nyasar):
       // URL bukan dari domain media, TANPA penulis, dan TANPA tanggal.
-      const isMediaUrl = /(jawapos\.com|kompas\.(id|com)|tempo\.co|republika\.(id|co\.id))/i.test(sourceUrl);
+      const isMediaUrl =
+        /(jawapos\.com|kompas\.(id|com)|tempo\.co|republika\.(id|co\.id)|mediaindonesia\.com)/i.test(
+          sourceUrl,
+        );
       if (!isMediaUrl && !author && !d.publishedAt && !d.publicationMonth) {
         rec.status = "SKIP";
         rec.notes = "bukan-cerpen (tanpa url media/penulis/tanggal)";

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { StudentHeader } from "@/components/student-header";
 import { ButtonLink, Card, PageIntro } from "@/components/ui";
 import { StoryCard } from "@/components/story-card";
@@ -9,15 +10,15 @@ export default async function Home() {
   const stories = (await listStories()).stories.slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <StudentHeader />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-6 sm:gap-10 sm:px-6 sm:py-12">
         <section className="grid gap-6 md:grid-cols-[1fr_0.95fr] md:items-center">
-          <div className="space-y-6">
+          <div className="space-y-5">
             <PageIntro
               eyebrow="Kritisa"
-              title="Membaca Cerpen dengan Lebih Kritis"
-              description="Kritisa membantu mahasiswa membaca cerpen, memilih kutipan penting, menulis kritik, berdiskusi dengan AI, dan merefleksikan pemahaman mereka."
+              title="Kritis Melalui Sastra"
+              description="Temukan makna di balik setiap cerita. KRITISA membantu mahasiswa membaca cerpen, memilih kutipan penting, berdiskusi dengan AI, dan merefleksikan pemahaman secara lebih kritis."
             />
             <div className="flex flex-col gap-2 sm:flex-row">
               <ButtonLink href="/masuk" fullWidth>
@@ -34,7 +35,7 @@ export default async function Home() {
               <p className="text-xs font-bold uppercase tracking-wide text-accent-strong">
                 Catatan Baca
               </p>
-              <p className="mt-2 font-serif text-xl font-bold leading-tight text-foreground sm:text-2xl">
+              <p className="mt-2 font-serif text-lg font-bold leading-snug text-foreground sm:text-2xl sm:leading-tight">
                 “Kritik dimulai dari memilih bukti, bukan menebak jawaban.”
               </p>
             </div>
@@ -58,9 +59,9 @@ export default async function Home() {
               ].map((item, index) => (
                 <div
                   key={item}
-                  className="grid grid-cols-[2.25rem_1fr] items-start gap-3 border-t border-border pt-3"
+                  className="grid grid-cols-[1.75rem_1fr] items-start gap-3 border-t border-border pt-3"
                 >
-                  <span className="font-serif text-2xl font-bold leading-none text-accent-strong">
+                  <span className="font-serif text-lg font-bold leading-6 text-accent-strong">
                     0{index + 1}
                   </span>
                   <p className="text-sm leading-6 text-foreground">{item}</p>
@@ -72,7 +73,7 @@ export default async function Home() {
 
         <section className="space-y-4">
           <div className="flex items-end justify-between gap-3">
-            <div>
+            <div className="min-w-0">
               <h2 className="text-xl font-bold text-foreground">
                 Cerpen Pilihan
               </h2>
@@ -80,13 +81,14 @@ export default async function Home() {
                 Mulai dari cerita yang sudah dipublikasikan.
               </p>
             </div>
-            <ButtonLink
+            {/* Jangan pakai `hidden` di sini: ButtonLink sudah membawa
+                `inline-flex`, dan `cn()` tidak menyelesaikan konflik kelas. */}
+            <Link
               href="/cerpen"
-              variant="ghost"
-              className="hidden sm:inline-flex"
+              className="min-h-11 shrink-0 self-end whitespace-nowrap py-2 text-sm font-semibold text-primary underline underline-offset-4"
             >
-              Semua Cerpen
-            </ButtonLink>
+              Semua
+            </Link>
           </div>
           {stories.length > 0 ? (
             <div className="grid gap-5 md:grid-cols-2">

@@ -41,7 +41,7 @@ export default async function AiDiscussionPage({
   const quotaUsed = user ? await countUserChatMessagesToday(user.id) : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <StudentHeader />
       <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
         <PageIntro
