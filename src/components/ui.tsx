@@ -67,14 +67,23 @@ export function ButtonLink({
 export function Card({
   children,
   className,
+  padded = true,
 }: {
   children: ReactNode;
   className?: string;
+  /**
+   * Set `false` untuk kartu yang mengatur paddingnya sendiri (mis. kartu
+   * bergambar penuh). Jangan menimpanya lewat `className="p-0"`: `cn()` hanya
+   * menggabung string tanpa menyelesaikan konflik, dan `.p-4` berada lebih
+   * akhir di stylesheet sehingga selalu menang atas `.p-0`.
+   */
+  padded?: boolean;
 }) {
   return (
     <section
       className={cn(
-        "max-w-full rounded-md border border-border bg-surface p-4 shadow-[0_1px_0_rgb(26_31_46_/_0.04)]",
+        "max-w-full rounded-md border border-border bg-surface shadow-[0_1px_0_rgb(26_31_46_/_0.04)]",
+        padded && "p-4",
         className,
       )}
     >

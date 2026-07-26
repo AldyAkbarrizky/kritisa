@@ -21,7 +21,10 @@ export function StoryCard({ story }: { story: StoryWithMedia }) {
   const cover = story.coverImageUrl;
 
   return (
-    <Card className="h-full overflow-hidden border-l-4 border-l-accent p-0 transition hover:border-l-accent-strong hover:shadow-md">
+    <Card
+      padded={false}
+      className="h-full overflow-hidden border-l-4 border-l-accent transition hover:border-l-accent-strong hover:shadow-md"
+    >
       <Link
         href={`/cerpen/${story.slug}`}
         className="flex h-full gap-3 p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:flex-col sm:gap-0 sm:p-0"
@@ -30,12 +33,12 @@ export function StoryCard({ story }: { story: StoryWithMedia }) {
           <div
             role="img"
             aria-label={story.title}
-            className="size-21 shrink-0 rounded-md bg-cover bg-center sm:aspect-[2/1] sm:size-auto sm:w-full sm:rounded-none"
+            className="size-21 shrink-0 self-center rounded-md bg-cover bg-center sm:aspect-[2/1] sm:size-auto sm:w-full sm:self-auto sm:rounded-none"
             style={{ backgroundImage: `url("${cover}")` }}
           />
         ) : (
           <div
-            className="flex size-21 shrink-0 items-center justify-center rounded-md sm:aspect-[2/1] sm:size-auto sm:w-full sm:rounded-none"
+            className="flex size-21 shrink-0 self-center items-center justify-center rounded-md sm:aspect-[2/1] sm:size-auto sm:w-full sm:self-auto sm:rounded-none"
             style={{ backgroundColor: hashColor(story.title) }}
           >
             <span className="font-serif text-2xl font-bold leading-none text-primary/30 sm:text-5xl">
