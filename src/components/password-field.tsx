@@ -18,12 +18,12 @@ export function PasswordField() {
             <input
               name="password"
               type={showPass ? "text" : "password"}
-              className={inputClassName + " pr-12"}
+              className={inputClassName + " pr-12" + (useDefault ? " opacity-60 cursor-not-allowed" : "")} 
               required
               minLength={6}
               value={useDefault ? "kritisa123" : undefined}
               onChange={useDefault ? undefined : (e) => {}}
-              disabled={useDefault}
+              readOnly={useDefault}
               placeholder={useDefault ? "" : "Masukkan kata sandi..."}
             />
             <button
